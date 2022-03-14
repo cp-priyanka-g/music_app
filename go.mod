@@ -2,12 +2,18 @@ module music_app
 
 go 1.17
 
+replace db => ./db
+
+replace register => ./register
+
 require (
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-sql-driver/mysql v1.6.0
+	register v0.0.0-00010101000000-000000000000
 )
 
 require (
+	db v0.0.0-00010101000000-000000000000
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
