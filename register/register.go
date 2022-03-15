@@ -1,7 +1,6 @@
 package register
 
 import (
-	"fmt"
 	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -12,11 +11,9 @@ import (
 )
 
 type UserRegister struct {
-	UserId   int    `json:"user_id"`
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
-	UserType string `json:"user_type"`
 }
 
 type RegisterRepository struct {
@@ -29,22 +26,22 @@ func New(db *sqlx.DB) *RegisterRepository {
 
 func (repository *RegisterRepository) UserInsert(c *gin.Context) {
 
-	var input UserRegister
-
+	input := UserRegister{}
 	err := c.ShouldBindWith(&input, binding.JSON)
+
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message cannot bind the STRUCT ": err.Error()})
 		return
 	}
 
-	res, err := repository.Db.Query(`INSERT INTO Users(name,email,password,user_type) VALUES (?, ?,?,?)`, input)
+	_, err = repository.Db.Exec(`INSERT INTO Users(name,email,password,user_type) VALUES (?,?,?,?)`, input.Name, input.Email, input.Password, "General")
 
 	if err != nil {
-		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"message cannot insert ": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusOK, gin.H{"message": "Register Successfully"})
 
 }
