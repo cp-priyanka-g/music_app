@@ -24,7 +24,7 @@ func New(db *sqlx.DB) *RegisterRepository {
 	return &RegisterRepository{Db: db}
 }
 
-func (repository *RegisterRepository) UserInsert(c *gin.Context) {
+func (repository *RegisterRepository) AddUser(c *gin.Context) {
 
 	input := UserRegister{}
 	err := c.ShouldBindWith(&input, binding.JSON)
@@ -43,5 +43,28 @@ func (repository *RegisterRepository) UserInsert(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Register Successfully"})
+
+}
+
+// ADMIN REGISTER
+func (repository *RegisterRepository) AddAdmin(c *gin.Context) {
+
+	input := UserRegister{}
+	err := c.ShouldBindWith(&input, binding.JSON)
+
+	if err != nil {
+		c.Abort()
+		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		return
+	}
+
+	_, err = repository.Db.Exec(`INSERT INTO Users(name,email,password,user_type) VALUES (?,?,?,?)`, input.Name, input.Email, input.Password, "Admin")
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message cannot insert ": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Admin Registered Successfully"})
 
 }

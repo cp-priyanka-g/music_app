@@ -23,11 +23,10 @@ func main() {
 func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	router := gin.Default()
 
-	jobsRepo := register.New(sqlDb)
-	adminRepo := register.NewCon(sqlDb)
+	registerRepo := register.New(sqlDb)
 
-	router.POST("/api/v1/register/userInsert", jobsRepo.UserInsert)
-	router.POST("/api/v1/register/adminInsert", adminRepo.AdminInsert)
+	router.POST("/api/v1/register", registerRepo.AddUser)
+	router.POST("/api/v1/register/admin_register", registerRepo.AddAdmin)
 
 	router.GET("/api/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
