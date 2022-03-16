@@ -2,6 +2,10 @@ package register
 
 import (
 	"net/http"
+	"os"
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -50,6 +54,7 @@ func (repository *RegisterRepository) AddUser(c *gin.Context) {
 func (repository *RegisterRepository) AddAdmin(c *gin.Context) {
 
 	input := UserRegister{}
+
 	err := c.ShouldBindWith(&input, binding.JSON)
 
 	if err != nil {
@@ -66,5 +71,75 @@ func (repository *RegisterRepository) AddAdmin(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Admin Registered Successfully"})
+}
 
+// LOGIN
+// func (repository *RegisterRepository) Careers(c *gin.Context) {
+
+// 	userInfo, err := repository.GetUser()
+
+// 	if err != nil {
+// 		c.AbortWithStatus(http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK,userInfo)
+
+// }
+
+// func (repository *RegisterRepository) GetUser() (userInfo[] UserRegister, err error) {
+
+// 	err = repository.Db.Select(&userInfo, `SELECT user_id,email,password FROM Users`)
+
+// 	if err != nil {
+// 		 err.Error()
+// 		return
+// 	}
+
+// 	return
+// }
+
+func (repository *RegisterRepository) Login(c *gin.Context) {
+	input := UserRegister{}
+	var userInfo []string
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
+		return
+	}
+
+	err := repository.Db.Select(&userInfo, `SELECT user_id,email,password FROM Users`)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, "Cannot get user info ")
+		return
+	}
+	//compare the user from the request, with the one we defined:
+	if userInfo[2] != input.Email || userInfo[3] != input.Password {
+		c.JSON(http.StatusUnauthorized, "Please provide valid login details")
+		return
+	}
+	token, err := CreateToken(user.ID)
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, token)
+}
+
+//Create Token
+
+func CreateToken(userid uint64) (string, error) {
+	var err error
+	//Creating Access Token
+	os.Setenv("ACCESS_SECRET", "jdnfksdmfksd") //this should be in an env file
+	atClaims := jwt.MapClaims{}
+	atClaims["authorized"] = true
+	atClaims["user_id"] = userid
+	atClaims["exp"] = time.Now().Add(time.Minute * 15).Unix()
+	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
+	token, err := at.SignedString([]byte(os.Getenv("ACCESS_SECRET")))
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }
