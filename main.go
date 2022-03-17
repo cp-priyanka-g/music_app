@@ -28,6 +28,7 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	router.POST("/api/v1/register", registerRepo.AddUser)
 	router.POST("/api/v1/register/admin_register", registerRepo.AddAdmin)
 	router.POST("/api/v1/login", registerRepo.Login)
+	router.GET("/api/v1/elcome", registerRepo.Welcome)
 
 	router.GET("/api/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{

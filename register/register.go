@@ -1,6 +1,7 @@
 package register
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -123,4 +124,40 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, tokenString)
 
+}
+
+func (repository *RegisterRepository) Welcome(c *gin.Context) {
+	{
+
+		// Get the JWT string from the cookie
+		tknStr := c.Value
+
+		// Initialize a new instance of `Claims`
+		claims := &Claims{}
+
+		// Parse the JWT string and store the result in `claims`.
+		// Note that we are passing the key in this method as well. This method will return an error
+		// if the token is invalid (if it has expired according to the expiry time we set on sign in),
+		// or if the signature does not match
+		tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
+			return jwtKey, nil
+		})
+		if err != nil {
+			if err == jwt.ErrSignatureInvalid {
+
+				c.JSON(http.StatusUnauthorized, gin.H{"Invalid Signature": err.Error()})
+				return
+			}
+			c.JSON(http.StatusBadRequest, gin.H{"BAd Request": err.Error()})
+			return
+		}
+		if !tkn.Valid {
+			c.JSON(http.StatusUnauthorized, gin.H{"Invalid Signature": err.Error()})
+			return
+		}
+
+		// Finally, return the welcome message to the user, along with their
+		// username given in the token
+		c.JSON(([]byte(fmt.Sprintf("Welcome %s!", claims.Username))))
+	}
 }
