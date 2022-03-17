@@ -18,10 +18,6 @@ type UserRegister struct {
 type RegisterRepository struct {
 	Db *sqlx.DB
 }
-type UserLogin struct {
-	Email    string
-	Password string
-}
 
 func New(db *sqlx.DB) *RegisterRepository {
 	return &RegisterRepository{Db: db}
@@ -77,21 +73,19 @@ func (repository *RegisterRepository) AddAdmin(c *gin.Context) {
 func (repository *RegisterRepository) Login(c *gin.Context) {
 
 	input := UserRegister{}
-	//var email, pass string
-	var userInfo UserRegister
+	var email string
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
 		return
 	}
 
-	row, err := repository.Db.Query(`SELECT email,password FROM Users WHERE email=? AND password=?`, input.Email, input.Password)
-	row.Scan(&userInfo.Email, &userInfo.Password)
+	err := repository.Db.Get(&email, `SELECT email FROM Users WHERE email= ?`, input.Email)
 
-	c.JSON(http.StatusOK, row)
+	c.JSON(http.StatusOK, email)
 	//compare the user from the request, with the one we defined:
 
-	if input.Email != userInfo.Email || input.Password != userInfo.Password {
+	if input.Email != email {
 		c.JSON(http.StatusUnauthorized, "Please provide valid login details")
 		return
 	} else if err != nil {
@@ -99,5 +93,5 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 
 	}
 
-	c.JSON(http.StatusOK, row)
+	c.JSON(http.StatusOK, gin.H{"message": "LOgin Successfully"})
 }
