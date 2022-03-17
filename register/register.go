@@ -2,7 +2,9 @@ package register
 
 import (
 	"net/http"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	_ "github.com/go-sql-driver/mysql"
@@ -18,6 +20,13 @@ type UserRegister struct {
 type RegisterRepository struct {
 	Db *sqlx.DB
 }
+type Claims struct {
+	Username string `json:"username"`
+	jwt.StandardClaims
+}
+
+// Create the JWT key used to create the signature
+var jwtKey = []byte("my_secret_key")
 
 func New(db *sqlx.DB) *RegisterRepository {
 	return &RegisterRepository{Db: db}
@@ -73,7 +82,7 @@ func (repository *RegisterRepository) AddAdmin(c *gin.Context) {
 func (repository *RegisterRepository) Login(c *gin.Context) {
 
 	input := UserRegister{}
-	var email string
+	var email, expectedPassword string
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
@@ -81,8 +90,10 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 	}
 
 	err := repository.Db.Get(&email, `SELECT email FROM Users WHERE email= ?`, input.Email)
+	res := repository.Db.Get(&expectedPassword, `SELECT email FROM Users WHERE password= ?`, input.Password)
 
 	c.JSON(http.StatusOK, email)
+	c.JSON(http.StatusOK, res)
 	//compare the user from the request, with the one we defined:
 
 	if input.Email != email {
@@ -94,4 +105,22 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "LOgin Successfully"})
+
+	expirationTime := time.Now().Add(5 * time.Minute)
+	claims := &Claims{
+		Username: input.Email,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+	if err != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error in creating the JWT": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, tokenString)
+
 }
