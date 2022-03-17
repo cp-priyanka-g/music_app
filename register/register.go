@@ -2,15 +2,10 @@ package register
 
 import (
 	"net/http"
-	"os"
-	"time"
-
-	"github.com/dgrijalva/jwt-go"
-
-	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -22,6 +17,10 @@ type UserRegister struct {
 
 type RegisterRepository struct {
 	Db *sqlx.DB
+}
+type UserLogin struct {
+	Email    string
+	Password string
 }
 
 func New(db *sqlx.DB) *RegisterRepository {
@@ -74,72 +73,31 @@ func (repository *RegisterRepository) AddAdmin(c *gin.Context) {
 }
 
 // LOGIN
-// func (repository *RegisterRepository) Careers(c *gin.Context) {
-
-// 	userInfo, err := repository.GetUser()
-
-// 	if err != nil {
-// 		c.AbortWithStatus(http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK,userInfo)
-
-// }
-
-// func (repository *RegisterRepository) GetUser() (userInfo[] UserRegister, err error) {
-
-// 	err = repository.Db.Select(&userInfo, `SELECT user_id,email,password FROM Users`)
-
-// 	if err != nil {
-// 		 err.Error()
-// 		return
-// 	}
-
-// 	return
-// }
 
 func (repository *RegisterRepository) Login(c *gin.Context) {
+
 	input := UserRegister{}
-	var userInfo []string
+	//var email, pass string
+	var userInfo UserRegister
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
 		return
 	}
 
-	err := repository.Db.Select(&userInfo, `SELECT user_id,email,password FROM Users`)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, "Cannot get user info ")
-		return
-	}
+	row, err := repository.Db.Query(`SELECT email,password FROM Users WHERE email=? AND password=?`, input.Email, input.Password)
+	row.Scan(&userInfo.Email, &userInfo.Password)
+
+	c.JSON(http.StatusOK, row)
 	//compare the user from the request, with the one we defined:
-	if userInfo[2] != input.Email || userInfo[3] != input.Password {
+
+	if input.Email != userInfo.Email || input.Password != userInfo.Password {
 		c.JSON(http.StatusUnauthorized, "Please provide valid login details")
 		return
-	}
-	token, err := CreateToken(user.ID)
-	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, err.Error())
-		return
-	}
-	c.JSON(http.StatusOK, token)
-}
+	} else if err != nil {
+		c.JSON(http.StatusUnauthorized, "Please register to login")
 
-//Create Token
-
-func CreateToken(userid uint64) (string, error) {
-	var err error
-	//Creating Access Token
-	os.Setenv("ACCESS_SECRET", "jdnfksdmfksd") //this should be in an env file
-	atClaims := jwt.MapClaims{}
-	atClaims["authorized"] = true
-	atClaims["user_id"] = userid
-	atClaims["exp"] = time.Now().Add(time.Minute * 15).Unix()
-	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
-	token, err := at.SignedString([]byte(os.Getenv("ACCESS_SECRET")))
-	if err != nil {
-		return "", err
 	}
-	return token, nil
+
+	c.JSON(http.StatusOK, row)
 }
