@@ -59,9 +59,31 @@ func (repository *ArtistRepository) UpdateArtist(c *gin.Context) {
 	_, err = repository.Db.Exec(`UPDATE Artist SET name=? ,image_url=? WHERE id=?`, input.Name, input.Image_url, input.Id)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot insert ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message cannot Update ": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "Artist Updated Successfully"})
+}
+
+// DELETE ARTIST
+func (repository *ArtistRepository) DeleteArtist(c *gin.Context) {
+	input := Artist{}
+
+	err := c.ShouldBindWith(&input, binding.JSON)
+
+	if err != nil {
+		c.Abort()
+		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		return
+	}
+
+	_, err = repository.Db.Exec(`DELETE Artist  WHERE id=?`, input.Id)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message cannot DELETE ": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"Message": "Artist Removed Successfully"})
 }
