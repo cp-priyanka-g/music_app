@@ -78,7 +78,7 @@ func (repository *ArtistRepository) DeleteArtist(c *gin.Context) {
 		return
 	}
 
-	_, err = repository.Db.Exec(`DELETE Artist  WHERE id=?`, input.Id)
+	_, err = repository.Db.Exec(`DELETE From Artist  WHERE id=?`, input.Id)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message cannot DELETE ": err.Error()})
