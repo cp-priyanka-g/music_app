@@ -1,24 +1,14 @@
-module music_app
+module artist
 
 go 1.17
 
-replace db => ./db
-
-replace artist => ./artist
-
-replace register => ./register
-
 require (
-	artist v0.0.0-00010101000000-000000000000
-	db v0.0.0-00010101000000-000000000000
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/jmoiron/sqlx v1.3.4
-	register v0.0.0-00010101000000-000000000000
 )
 
 require (
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
