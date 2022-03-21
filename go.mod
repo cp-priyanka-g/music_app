@@ -8,7 +8,10 @@ replace artist => ./artist
 
 replace register => ./register
 
+replace album => ./album
+
 require (
+	album v0.0.0-00010101000000-000000000000
 	artist v0.0.0-00010101000000-000000000000
 	db v0.0.0-00010101000000-000000000000
 	github.com/gin-gonic/gin v1.7.7

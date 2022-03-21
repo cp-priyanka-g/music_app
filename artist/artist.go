@@ -1,8 +1,7 @@
 package artist
 
 import (
-	"database/sql"
-
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -25,6 +24,10 @@ type ArtistRepository struct {
 
 func New(db *sqlx.DB) *ArtistRepository {
 	return &ArtistRepository{Db: db}
+}
+
+type error interface {
+	Error() string
 }
 
 func (repository *ArtistRepository) Create(c *gin.Context) {
@@ -50,28 +53,28 @@ func (repository *ArtistRepository) Create(c *gin.Context) {
 
 // Select ARTIST
 func (repository *ArtistRepository) Read(c *gin.Context) {
-	input := Artist{}
 
-	err := c.ShouldBindWith(&input, binding.JSON)
-
-	if err != nil {
-		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
-		return
-	}
-	err = repository.Db.Select(&input, `SELECT *from Artist`)
+	input, err := repository.GetArtist()
 
 	if err != nil {
-		err.Error()
-		if err == sql.ErrNoRows {
-			c.AbortWithStatus(http.StatusNotFound)
-			return
-		}
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
 	c.JSON(http.StatusOK, input)
+
+}
+
+func (repository *ArtistRepository) GetArtist() (input []Artist, err error) {
+
+	err = repository.Db.Select(&input, `SELECT name,image_url,created_at,updated_at from Artist`)
+	if err != nil {
+		fmt.Println("error on display")
+		return
+
+	}
+
+	return
 }
 
 //UPDATE artist
