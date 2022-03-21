@@ -1,6 +1,8 @@
 package artist
 
 import (
+	"database/sql"
+
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,6 +15,8 @@ type Artist struct {
 	Id        int    `json:"id"`
 	Name      string `json:"name"`
 	Image_url string `json:"image_url"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
 }
 
 type ArtistRepository struct {
@@ -23,7 +27,7 @@ func New(db *sqlx.DB) *ArtistRepository {
 	return &ArtistRepository{Db: db}
 }
 
-func (repository *ArtistRepository) CreateArtist(c *gin.Context) {
+func (repository *ArtistRepository) Create(c *gin.Context) {
 	input := Artist{}
 
 	err := c.ShouldBindWith(&input, binding.JSON)
@@ -44,8 +48,34 @@ func (repository *ArtistRepository) CreateArtist(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Message": "Artist Added Successfully"})
 }
 
+// Select ARTIST
+func (repository *ArtistRepository) Read(c *gin.Context) {
+	input := Artist{}
+
+	err := c.ShouldBindWith(&input, binding.JSON)
+
+	if err != nil {
+		c.Abort()
+		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		return
+	}
+	err = repository.Db.Select(&input, `SELECT *from Artist`)
+
+	if err != nil {
+		err.Error()
+		if err == sql.ErrNoRows {
+			c.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, input)
+}
+
 //UPDATE artist
-func (repository *ArtistRepository) UpdateArtist(c *gin.Context) {
+func (repository *ArtistRepository) Update(c *gin.Context) {
 	input := Artist{}
 
 	err := c.ShouldBindWith(&input, binding.JSON)
@@ -67,7 +97,7 @@ func (repository *ArtistRepository) UpdateArtist(c *gin.Context) {
 }
 
 // DELETE ARTIST
-func (repository *ArtistRepository) DeleteArtist(c *gin.Context) {
+func (repository *ArtistRepository) Delete(c *gin.Context) {
 	input := Artist{}
 
 	err := c.ShouldBindWith(&input, binding.JSON)

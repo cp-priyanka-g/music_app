@@ -27,13 +27,14 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	registerRepo := register.New(sqlDb)
 	artistRepo := artist.New(sqlDb)
 
-	router.POST("/api/v1/register", registerRepo.AddUser)
-	router.POST("/api/v1/register/admin_register", registerRepo.AddAdmin)
+	router.POST("/api/v1/register", registerRepo.Register)
+	router.POST("/api/v1/register/admin_register", registerRepo.RegisterAdmin)
 	router.POST("/api/v1/login", registerRepo.Login)
-	// router.GET("/api/v1/elcome", registerRepo.Welcome)
-	router.POST("/api/v1/artist/add", artistRepo.CreateArtist)
-	router.POST("/api/v1/artist/update/:id", artistRepo.UpdateArtist)
-	router.POST("/api/v1/artist/delete/", artistRepo.DeleteArtist)
+
+	router.POST("/api/v1/artist/create", artistRepo.Create)
+	router.POST("/api/v1/artist/update/:id", artistRepo.Update)
+	router.POST("/api/v1/artist/delete/", artistRepo.Delete)
+	router.GET("/api/v1/artist/display/", artistRepo.Read)
 
 	router.GET("/api/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{

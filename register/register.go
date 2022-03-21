@@ -1,6 +1,7 @@
 package register
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -14,7 +15,7 @@ import (
 type UserRegister struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
-	Password string `json:"password"`
+	UserType string `json:"user_type"`
 }
 
 type RegisterRepository struct {
@@ -22,17 +23,38 @@ type RegisterRepository struct {
 }
 type Claims struct {
 	Username string `json:"username"`
+	UserType string `json:"user_type"`
 	jwt.StandardClaims
 }
 
 // Create the JWT key used to create the signature
 var jwtKey = []byte("my_secret_key")
 
+func GenerateToken(uemail string) {
+	expirationTime := time.Now().Add(5 * time.Minute)
+	claims := &Claims{
+		Username: uemail,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+	if err != nil {
+		fmt.Println("ERROR IN GENERATING TOKEN")
+		return
+	}
+
+	fmt.Println("Token Created", tokenString)
+
+}
+
 func New(db *sqlx.DB) *RegisterRepository {
 	return &RegisterRepository{Db: db}
 }
 
-func (repository *RegisterRepository) AddUser(c *gin.Context) {
+func (repository *RegisterRepository) Register(c *gin.Context) {
 
 	input := UserRegister{}
 	err := c.ShouldBindWith(&input, binding.JSON)
@@ -43,7 +65,7 @@ func (repository *RegisterRepository) AddUser(c *gin.Context) {
 		return
 	}
 
-	_, err = repository.Db.Exec(`INSERT INTO Users(name,email,password,user_type) VALUES (?,?,?,?)`, input.Name, input.Email, input.Password, "General")
+	_, err = repository.Db.Exec(`INSERT INTO Users(name,email,user_type) VALUES (?,?,?)`, input.Name, input.Email, "General")
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message cannot insert ": err.Error()})
@@ -52,10 +74,14 @@ func (repository *RegisterRepository) AddUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Register Successfully"})
 
+	GenerateToken(input.Email)
+
 }
 
+//
+
 // ADMIN REGISTER
-func (repository *RegisterRepository) AddAdmin(c *gin.Context) {
+func (repository *RegisterRepository) RegisterAdmin(c *gin.Context) {
 
 	input := UserRegister{}
 
@@ -67,7 +93,7 @@ func (repository *RegisterRepository) AddAdmin(c *gin.Context) {
 		return
 	}
 
-	_, err = repository.Db.Exec(`INSERT INTO Users(name,email,password,user_type) VALUES (?,?,?,?)`, input.Name, input.Email, input.Password, "Admin")
+	_, err = repository.Db.Exec(`INSERT INTO Users(name,email,user_type) VALUES (?,?,?)`, input.Name, input.Email, "Admin")
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message cannot insert ": err.Error()})
@@ -75,6 +101,9 @@ func (repository *RegisterRepository) AddAdmin(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Admin Registered Successfully"})
+
+	GenerateToken(input.Email)
+
 }
 
 // LOGIN
@@ -82,19 +111,17 @@ func (repository *RegisterRepository) AddAdmin(c *gin.Context) {
 func (repository *RegisterRepository) Login(c *gin.Context) {
 
 	input := UserRegister{}
-	var email, expectedPassword string
+	var email, utype string
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
 		return
 	}
 
+	_ = repository.Db.Get(&utype, `SELECT user_type FROM Users WHERE email= ?`, input.Email)
 	err := repository.Db.Get(&email, `SELECT email FROM Users WHERE email= ?`, input.Email)
-	res := repository.Db.Get(&expectedPassword, `SELECT email FROM Users WHERE password= ?`, input.Password)
 
 	c.JSON(http.StatusOK, email)
-	c.JSON(http.StatusOK, res)
-	//compare the user from the request, with the one we defined:
 
 	if input.Email != email {
 		c.JSON(http.StatusUnauthorized, "Please provide valid login details")
@@ -104,11 +131,11 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "LOgin Successfully"})
-
+	// Creating TOken
 	expirationTime := time.Now().Add(5 * time.Minute)
 	claims := &Claims{
 		Username: input.Email,
+		UserType: utype,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -123,40 +150,30 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, tokenString)
 
+	//	Verifying user authentication
+
+	tkn, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			c.JSON(http.StatusUnauthorized, gin.H{"Signature Invalid": err.Error()})
+			return
+		}
+		c.JSON(http.StatusBadRequest, gin.H{"error in creating the JWT": err.Error()})
+		return
+	}
+	if !tkn.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"Unauthorised user": err.Error()})
+		return
+	}
+
+	// Finally, return the welcome message to the user, along with their
+
+	if claims.UserType == "admin" {
+		c.JSON(http.StatusOK, gin.H{"message": "Welcome Admin"})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"message": "Welcome User"})
+	}
+
 }
-
-// func (repository *RegisterRepository) Welcome(c *gin.Context) {
-// 	{
-
-// 		// Get the JWT string from the cookie
-// 		tknStr := c.Value
-
-// 		// Initialize a new instance of `Claims`
-// 		claims := &Claims{}
-
-// 		// Parse the JWT string and store the result in `claims`.
-// 		// Note that we are passing the key in this method as well. This method will return an error
-// 		// if the token is invalid (if it has expired according to the expiry time we set on sign in),
-// 		// or if the signature does not match
-// 		tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
-// 			return jwtKey, nil
-// 		})
-// 		if err != nil {
-// 			if err == jwt.ErrSignatureInvalid {
-
-// 				c.JSON(http.StatusUnauthorized, gin.H{"Invalid Signature": err.Error()})
-// 				return
-// 			}
-// 			c.JSON(http.StatusBadRequest, gin.H{"BAd Request": err.Error()})
-// 			return
-// 		}
-// 		if !tkn.Valid {
-// 			c.JSON(http.StatusUnauthorized, gin.H{"Invalid Signature": err.Error()})
-// 			return
-// 		}
-
-// 		// Finally, return the welcome message to the user, along with their
-// 		// username given in the token
-// 		c.JSON(([]byte(fmt.Sprintf("Welcome %s!", claims.Username))))
-// 	}
-// }
