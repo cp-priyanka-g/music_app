@@ -80,14 +80,14 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	authorized.POST("/api/v1/playlist/add-playlist-track", playlistRepo.Add)
 	authorized.DELETE("/api/v1/playlist/delete-playlist-track", playlistRepo.Remove)
 	router.GET("/api/v1/playlist/get-playlist", playlistRepo.Get)
-	router.GET("/api/v1/playlist/get-playlist/:id", playlistRepo.PlaylistById)
+	authorized.GET("/api/v1/playlist/get-playlist/:id", playlistRepo.PlaylistById)
 
 	// Favourite Track
 
 	router.POST("/api/v1/favourite-track/create", favRepo.Create)
 	router.DELETE("/api/v1/favourite-track/delete", favRepo.Delete)
 	router.GET("/api/v1/favourite-track/read", favRepo.Read)
-	router.GET("/api/v1/favourite-track/:id", favRepo.FavTrackById)
+	router.GET("/api/v1/favourite-track/:id", favRepo.FavTrackId)
 
 	//Test ENDPOINTS
 	router.GET("/api/ping", func(c *gin.Context) {

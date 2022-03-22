@@ -75,7 +75,7 @@ func (repository *FavRepository) GetTrack() (input []Favourite, err error) {
 
 // Get Track by ID
 
-func (repository *FavRepository) FavTrackById(c *gin.Context) {
+func (repository *FavRepository) FavTrackId(c *gin.Context) {
 
 	track := Favourite{}
 
