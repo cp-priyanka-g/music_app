@@ -1,12 +1,6 @@
 package album
 
 import (
-
-	// "register"
-	// "fmt"
-	// "net/http"
-	// "time"
-
 	"fmt"
 	"net/http"
 
@@ -21,8 +15,10 @@ type Album struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	ImageUrl    string `json:"image_url"`
-	IsPublished string `json:"is_published "`
-	ArtistId    string `json:"artist_id"`
+	IsPublished int    `json:"is_published "`
+	CreatedAt   string `json:"created_at "`
+	UpdatedAt   string `json:"updated_at "`
+	ArtistId    int    `json:"artist_id"`
 }
 
 type AlbumRepository struct {
@@ -54,7 +50,7 @@ func (repository *AlbumRepository) Create(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Message": "Album Created Successfully"})
 }
 
-// Select ARTIST
+// Select Album
 func (repository *AlbumRepository) Read(c *gin.Context) {
 
 	input, err := repository.GetAlbum()
@@ -70,7 +66,7 @@ func (repository *AlbumRepository) Read(c *gin.Context) {
 
 func (repository *AlbumRepository) GetAlbum() (input []Album, err error) {
 
-	err = repository.Db.Select(&input, `SELECT name,description,image_url,is_published,artist_id from Album`)
+	err = repository.Db.Select(&input, `SELECT name,description,image_url,is_published from Album`)
 	if err != nil {
 		fmt.Println("error on display")
 		return
@@ -80,7 +76,7 @@ func (repository *AlbumRepository) GetAlbum() (input []Album, err error) {
 	return
 }
 
-//UPDATE artist
+//UPDATE Album
 func (repository *AlbumRepository) Update(c *gin.Context) {
 	input := Album{}
 
@@ -92,7 +88,7 @@ func (repository *AlbumRepository) Update(c *gin.Context) {
 		return
 	}
 
-	_, err = repository.Db.Exec(`UPDATE Album SET name=?,description=?,image_url=? ,is_published=? WHERE id=?`, input.Name, input.Description, input.Image_url, input.IsPublished, input.Id)
+	_, err = repository.Db.Exec(`UPDATE Album SET name=?,description=?,image_url=? ,is_published=? WHERE id=?`, input.Name, input.Description, input.ImageUrl, input.IsPublished, input.Id)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message cannot Update ": err.Error()})
@@ -102,7 +98,7 @@ func (repository *AlbumRepository) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Message": "Album Updated Successfully"})
 }
 
-// DELETE ARTIST
+// DELETE Album
 func (repository *AlbumRepository) Delete(c *gin.Context) {
 	input := Album{}
 
