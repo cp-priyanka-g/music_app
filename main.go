@@ -4,6 +4,7 @@ import (
 	"album"
 	"artist"
 	"db"
+	"favourite"
 	"net/http"
 	"playlist"
 	"register"
@@ -44,6 +45,7 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	albumRepo := album.New(sqlDb)
 	trackRepo := track.New(sqlDb)
 	playlistRepo := playlist.New(sqlDb)
+	favRepo := favourite.New(sqlDb)
 
 	//USER Authencation
 	authorized.POST("/api/v1/register", registerRepo.Register)
@@ -69,7 +71,6 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	authorized.PUT("/api/v1/track/update", trackRepo.Update)
 	authorized.DELETE("/api/v1/track/delete", trackRepo.Delete)
 	router.GET("/api/v1/track/read", trackRepo.Read)
-	router.GET("/api/v1/track/get/:id", trackRepo.TrackById)
 
 	//Playlist
 	authorized.POST("/api/v1/playlist/create", playlistRepo.Create)
@@ -81,6 +82,14 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	router.GET("/api/v1/playlist/get-playlist", playlistRepo.Get)
 	router.GET("/api/v1/playlist/get-playlist/:id", playlistRepo.PlaylistById)
 
+	// Favourite Track
+
+	router.POST("/api/v1/favourite-track/create", favRepo.Create)
+	router.DELETE("/api/v1/favourite-track/delete", favRepo.Delete)
+	router.GET("/api/v1/favourite-track/read", favRepo.Read)
+	router.GET("/api/v1/favourite-track/:id", favRepo.FavTrackById)
+
+	//Test ENDPOINTS
 	router.GET("/api/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Pong",

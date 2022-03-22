@@ -1,7 +1,6 @@
 package track
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -76,29 +75,6 @@ func (repository *TrackRepository) GetTrack() (input []Track, err error) {
 	}
 
 	return
-}
-
-// Get Track by ID
-
-func (repository *TrackRepository) TrackById(c *gin.Context) {
-
-	track := Track{}
-
-	id := c.Param("id")
-
-	err := repository.Db.Get(&track, `SELECT name,track_index,track_url,image_url,is_published,created_at,updated_at,artist_id from Track WHERE track_id=?`, id)
-
-	if err != nil {
-		fmt.Println("error query is empty")
-		if err == sql.ErrNoRows {
-			c.AbortWithStatus(http.StatusNotFound)
-			return
-		}
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	c.JSON(http.StatusOK, track)
 }
 
 //UPDATE Track
