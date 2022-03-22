@@ -1,6 +1,7 @@
 package playlist
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	//"github.com/prometheus/common/log"
 )
 
 type playlist struct {
@@ -169,4 +171,53 @@ func (repository *PlaylistRepository) Remove(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "Playlist Removed from Track  Successfully"})
+}
+
+// Get playlist
+func (repository *PlaylistRepository) Get(c *gin.Context) {
+
+	input, err := repository.GetPlaylistTrack()
+
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, input)
+
+}
+
+func (repository *PlaylistRepository) GetPlaylistTrack() (input []PlaylistTrack, err error) {
+
+	err = repository.Db.Select(&input, `SELECT id,playlist_id,track_id from PlaylistTrack`)
+	if err != nil {
+		fmt.Println("error on display")
+		return
+
+	}
+
+	return
+}
+
+// Get Playlist by ID
+
+func (repository *PlaylistRepository) PlaylistById(c *gin.Context) {
+
+	playlist := PlaylistTrack{}
+
+	id := c.Param("id")
+
+	err := repository.Db.Get(&playlist, `SELECT id,playlist_id,track_id FROM PlaylistTrack WHERE playlist_id = ?`, id)
+
+	if err != nil {
+		fmt.Println("error query is empty")
+		if err == sql.ErrNoRows {
+			c.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, playlist)
 }

@@ -77,6 +77,8 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	authorized.GET("/api/v1/playlist/read", playlistRepo.Read)
 	authorized.POST("/api/v1/playlist/add-playlist-track", playlistRepo.Add)
 	authorized.DELETE("/api/v1/playlist/delete-playlist-track", playlistRepo.Remove)
+	authorized.GET("/api/v1/playlist/get-playlist", playlistRepo.Get)
+	authorized.GET("/api/v1/playlist/get-playlist/:id", playlistRepo.PlaylistById)
 
 	router.GET("/api/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
