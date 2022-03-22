@@ -61,12 +61,15 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	authorized.PUT("/api/v1/album/update", albumRepo.Update)
 	authorized.DELETE("/api/v1/album/delete", albumRepo.Delete)
 	authorized.GET("/api/v1/album/read", albumRepo.Read)
+	authorized.POST("/api/v1/album/add-track", albumRepo.Add)
+	authorized.DELETE("/api/v1/album/remove-track", albumRepo.Remove)
 
 	//Track
 	authorized.POST("/api/v1/track/create", trackRepo.Create)
 	authorized.PUT("/api/v1/track/update", trackRepo.Update)
 	authorized.DELETE("/api/v1/track/delete", trackRepo.Delete)
 	authorized.GET("/api/v1/track/read", trackRepo.Read)
+
 	//Playlist
 	authorized.POST("/api/v1/playlist/create", playlistRepo.Create)
 	authorized.PUT("/api/v1/playlist/update", playlistRepo.Update)

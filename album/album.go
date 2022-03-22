@@ -21,6 +21,12 @@ type Album struct {
 	ArtistId    int    `json:"artist_id"`
 }
 
+type AlbumTrack struct {
+	Id      int `json:"id"`
+	AlbumId int `json:"album_id"`
+	TrackId int `json:"track_id"`
+}
+
 type AlbumRepository struct {
 	Db *sqlx.DB
 }
@@ -118,4 +124,50 @@ func (repository *AlbumRepository) Delete(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "Album  Removed Successfully"})
+}
+
+// Add/remove Track from Album
+
+func (repository *AlbumRepository) Add(c *gin.Context) {
+	input := AlbumTrack{}
+
+	err := c.ShouldBindWith(&input, binding.JSON)
+
+	if err != nil {
+		c.Abort()
+		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		return
+	}
+
+	_, err = repository.Db.Exec(`INSERT INTO AlbumTrack(album_id,track_id) VALUES (?,?)`, input.AlbumId, input.TrackId)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message cannot add data": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"Message": "Track Added in album Successfully"})
+}
+
+func (repository *AlbumRepository) Remove(c *gin.Context) {
+
+	input := AlbumTrack{}
+
+	err := c.ShouldBindWith(&input, binding.JSON)
+
+	fmt.Println("cannot bind", err)
+	if err != nil {
+		c.Abort()
+		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		return
+	}
+
+	_, err = repository.Db.Exec(`DELETE From AlbumTrack WHERE album_id=? and track_id=? `, input.AlbumId, input.TrackId)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message cannot DELETE ": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"Message": "Track  Removed from album  Successfully"})
 }
