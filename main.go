@@ -60,7 +60,7 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	authorized.POST("/api/v1/album/create", albumRepo.Create)
 	authorized.PUT("/api/v1/album/update", albumRepo.Update)
 	authorized.DELETE("/api/v1/album/delete", albumRepo.Delete)
-	authorized.GET("/api/v1/album/read", albumRepo.Read)
+	router.GET("/api/v1/album/read", albumRepo.Read)
 	authorized.POST("/api/v1/album/add-track", albumRepo.Add)
 	authorized.DELETE("/api/v1/album/remove-track", albumRepo.Remove)
 
@@ -68,7 +68,8 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	authorized.POST("/api/v1/track/create", trackRepo.Create)
 	authorized.PUT("/api/v1/track/update", trackRepo.Update)
 	authorized.DELETE("/api/v1/track/delete", trackRepo.Delete)
-	authorized.GET("/api/v1/track/read", trackRepo.Read)
+	router.GET("/api/v1/track/read", trackRepo.Read)
+	router.GET("/api/v1/track/get/:id", trackRepo.TrackById)
 
 	//Playlist
 	authorized.POST("/api/v1/playlist/create", playlistRepo.Create)
@@ -77,8 +78,8 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	authorized.GET("/api/v1/playlist/read", playlistRepo.Read)
 	authorized.POST("/api/v1/playlist/add-playlist-track", playlistRepo.Add)
 	authorized.DELETE("/api/v1/playlist/delete-playlist-track", playlistRepo.Remove)
-	authorized.GET("/api/v1/playlist/get-playlist", playlistRepo.Get)
-	authorized.GET("/api/v1/playlist/get-playlist/:id", playlistRepo.PlaylistById)
+	router.GET("/api/v1/playlist/get-playlist", playlistRepo.Get)
+	router.GET("/api/v1/playlist/get-playlist/:id", playlistRepo.PlaylistById)
 
 	router.GET("/api/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{

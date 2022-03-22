@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	//"github.com/prometheus/common/log"
 )
 
 type playlist struct {
@@ -17,7 +16,7 @@ type playlist struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	ImageUrl    string `json:"image_url"`
-	IsPublished int    `json:"is_published "`
+	IsPublished int    `json:"is_published"`
 	CreatedAt   string `json:"created_at"`
 	UpdatedAt   string `json:"updated_at"`
 }
