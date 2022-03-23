@@ -1,7 +1,6 @@
 package track
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -37,15 +36,14 @@ func (repository *TrackRepository) Create(c *gin.Context) {
 
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
 		return
 	}
 
 	_, err = repository.Db.Exec(`INSERT INTO Track (name,track_index,track_url,image_url,is_published,artist_id) VALUES (?,?,?,?,?,?)`, input.Name, input.TrackIndex, input.TrackUrl, input.ImageUrl, input.IsPublished, input.ArtistId)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot insert ": err.Error()})
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "Track Created Successfully"})
@@ -57,8 +55,7 @@ func (repository *TrackRepository) Read(c *gin.Context) {
 	input, err := repository.GetTrack()
 
 	if err != nil {
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, input)
@@ -69,8 +66,7 @@ func (repository *TrackRepository) GetTrack() (input []Track, err error) {
 
 	err = repository.Db.Select(&input, `SELECT name,track_index,track_url,image_url,is_published,created_at,updated_at,artist_id from Track`)
 	if err != nil {
-		fmt.Println("error on display")
-		return
+		panic(err)
 
 	}
 
@@ -85,15 +81,14 @@ func (repository *TrackRepository) Update(c *gin.Context) {
 
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
 		return
 	}
 
 	_, err = repository.Db.Exec(`UPDATE Track SET name=?,track_index=?,track_url=?,image_url=? ,is_published=? WHERE track_id=?`, input.Name, input.TrackIndex, input.TrackUrl, input.ImageUrl, input.IsPublished, input.Id)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot Update ": err.Error()})
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "Track Updated Successfully"})
@@ -107,15 +102,14 @@ func (repository *TrackRepository) Delete(c *gin.Context) {
 
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
 		return
 	}
 
 	_, err = repository.Db.Exec(`DELETE From Track  WHERE track_id=?`, input.Id)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot DELETE ": err.Error()})
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "Track Removed Successfully"})

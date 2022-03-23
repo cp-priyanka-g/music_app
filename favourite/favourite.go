@@ -1,8 +1,6 @@
 package favourite
 
 import (
-	"database/sql"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -33,15 +31,14 @@ func (repository *FavRepository) Create(c *gin.Context) {
 
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
 		return
 	}
 
 	_, err = repository.Db.Exec(`INSERT INTO Favourite_tracks (track_id,user_id,fav_track_index) VALUES (?,?,?)`, input.TrackId, input.UserID, input.FavTrackIndex)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot insert ": err.Error()})
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "Favourite Track created Successfully"})
@@ -65,7 +62,7 @@ func (repository *FavRepository) GetTrack() (input []Favourite, err error) {
 
 	err = repository.Db.Select(&input, `SELECT track_id,user_id,fav_track_index from Favourite_tracks `)
 	if err != nil {
-		fmt.Println("error on display")
+
 		return
 
 	}
@@ -84,13 +81,7 @@ func (repository *FavRepository) FavTrackId(c *gin.Context) {
 	err := repository.Db.Get(&track, `SELECT track_id,user_id,fav_track_index  from Favourite_tracks WHERE fav_track_id=?`, id)
 
 	if err != nil {
-		fmt.Println("error query is empty")
-		if err == sql.ErrNoRows {
-			c.AbortWithStatus(http.StatusNotFound)
-			return
-		}
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, track)
@@ -104,15 +95,14 @@ func (repository *FavRepository) Delete(c *gin.Context) {
 
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
 		return
 	}
 
 	_, err = repository.Db.Exec(`DELETE From Favourite_tracks  WHERE  fav_track_id=?`, input.FavTrackId)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot DELETE ": err.Error()})
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "Track Removed from Favourite Successfully"})

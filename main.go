@@ -49,44 +49,44 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 
 	//USER Authencation
 	authorized.POST("/api/v1/register", registerRepo.Register)
-	authorized.POST("/api/v1/register/admin_register", registerRepo.RegisterAdmin)
+	authorized.POST("/api/v1/register/admin-register", registerRepo.RegisterAdmin)
 	authorized.POST("/api/v1/login", registerRepo.Login)
 
 	//ARTIST
-	authorized.POST("/api/v1/artist/create", artistRepo.Create)
-	authorized.PUT("/api/v1/artist/update/:id", artistRepo.Update)
-	authorized.DELETE("/api/v1/artist/delete", artistRepo.Delete)
-	authorized.GET("/api/v1/artist/display", artistRepo.Read)
+	authorized.POST("/api/v1/artist", artistRepo.Create)
+	authorized.PUT("/api/v1/artist/:id", artistRepo.Update)
+	authorized.DELETE("/api/v1/artist", artistRepo.Delete)
+	authorized.GET("/api/v1/artist/", artistRepo.Read)
 
 	//ALBUM
-	authorized.POST("/api/v1/album/create", albumRepo.Create)
-	authorized.PUT("/api/v1/album/update", albumRepo.Update)
-	authorized.DELETE("/api/v1/album/delete", albumRepo.Delete)
-	router.GET("/api/v1/album/read", albumRepo.Read)
-	authorized.POST("/api/v1/album/add-track", albumRepo.Add)
-	authorized.DELETE("/api/v1/album/remove-track", albumRepo.Remove)
+	authorized.POST("/api/v1/album", albumRepo.Create)
+	authorized.PUT("/api/v1/album", albumRepo.Update)
+	authorized.DELETE("/api/v1/album", albumRepo.Delete)
+	router.GET("/api/v1/album", albumRepo.Read)
+	authorized.POST("/api/v1/album", albumRepo.Add)
+	authorized.DELETE("/api/v1/album", albumRepo.Remove)
 
 	//Track
-	authorized.POST("/api/v1/track/create", trackRepo.Create)
-	authorized.PUT("/api/v1/track/update", trackRepo.Update)
-	authorized.DELETE("/api/v1/track/delete", trackRepo.Delete)
-	router.GET("/api/v1/track/read", trackRepo.Read)
+	authorized.POST("/api/v1/track", trackRepo.Create)
+	authorized.PUT("/api/v1/track", trackRepo.Update)
+	authorized.DELETE("/api/v1/track", trackRepo.Delete)
+	authorized.GET("/api/v1/track", trackRepo.Read)
 
 	//Playlist
-	authorized.POST("/api/v1/playlist/create", playlistRepo.Create)
-	authorized.PUT("/api/v1/playlist/update", playlistRepo.Update)
-	authorized.DELETE("/api/v1/playlist/delete", playlistRepo.Delete)
-	authorized.GET("/api/v1/playlist/read", playlistRepo.Read)
-	authorized.POST("/api/v1/playlist/add-playlist-track", playlistRepo.Add)
-	authorized.DELETE("/api/v1/playlist/delete-playlist-track", playlistRepo.Remove)
-	router.GET("/api/v1/playlist/get-playlist", playlistRepo.Get)
-	authorized.GET("/api/v1/playlist/get-playlist/:id", playlistRepo.PlaylistById)
+	authorized.POST("/api/v1/playlist", playlistRepo.Create)
+	authorized.PUT("/api/v1/playlist", playlistRepo.Update)
+	authorized.DELETE("/api/v1/playlist", playlistRepo.Delete)
+	authorized.GET("/api/v1/playlist", playlistRepo.Read)
+	authorized.POST("/api/v1/playlist", playlistRepo.Add)
+	authorized.DELETE("/api/v1/playlist", playlistRepo.Remove)
+	authorized.GET("/api/v1/playlist", playlistRepo.Get)
+	authorized.GET("/api/v1/playlist/:id", playlistRepo.PlaylistById)
 
 	// Favourite Track
 
-	router.POST("/api/v1/favourite-track/create", favRepo.Create)
-	router.DELETE("/api/v1/favourite-track/delete", favRepo.Delete)
-	router.GET("/api/v1/favourite-track/read", favRepo.Read)
+	router.POST("/api/v1/favourite-track", favRepo.Create)
+	router.DELETE("/api/v1/unfavourite-track", favRepo.Delete)
+	router.GET("/api/v1/favourite-track", favRepo.Read)
 	router.GET("/api/v1/favourite-track/:id", favRepo.FavTrackId)
 
 	//Test ENDPOINTS

@@ -1,7 +1,6 @@
 package artist
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -37,17 +36,15 @@ func (repository *ArtistRepository) Create(c *gin.Context) {
 
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
 		return
 	}
 
 	_, err = repository.Db.Exec(`INSERT INTO Artist(name,image_url) VALUES (?,?)`, input.Name, input.Image_url)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot insert ": err.Error()})
-		return
+		panic(err)
 	}
-
 	c.JSON(http.StatusOK, gin.H{"Message": "Artist Added Successfully"})
 }
 
@@ -69,8 +66,7 @@ func (repository *ArtistRepository) GetArtist() (input []Artist, err error) {
 
 	err = repository.Db.Select(&input, `SELECT name,image_url,created_at,updated_at from Artist`)
 	if err != nil {
-		fmt.Println("error on display")
-		return
+		panic(err)
 
 	}
 
@@ -85,15 +81,14 @@ func (repository *ArtistRepository) Update(c *gin.Context) {
 
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
 		return
 	}
 
 	_, err = repository.Db.Exec(`UPDATE Artist SET name=? ,image_url=? WHERE id=?`, input.Name, input.Image_url, input.Id)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot Update ": err.Error()})
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "Artist Updated Successfully"})
@@ -107,15 +102,14 @@ func (repository *ArtistRepository) Delete(c *gin.Context) {
 
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
 		return
 	}
 
 	_, err = repository.Db.Exec(`DELETE From Artist  WHERE id=?`, input.Id)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot DELETE ": err.Error()})
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "Artist Removed Successfully"})

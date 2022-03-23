@@ -1,7 +1,6 @@
 package album
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -22,9 +21,9 @@ type Album struct {
 }
 
 type AlbumTrack struct {
-	Id      int `json:"id"`
-	AlbumId int `json:"album_id"`
-	TrackId int `json:"track_id"`
+	Id      int    `json:"id"`
+	AlbumId int    `json:"album_id"`
+	TrackId [3]int `json:"track_id"`
 }
 
 type AlbumRepository struct {
@@ -42,15 +41,14 @@ func (repository *AlbumRepository) Create(c *gin.Context) {
 
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
 		return
 	}
 
 	_, err = repository.Db.Exec(`INSERT INTO Album(name,description,image_url,is_published,artist_id) VALUES (?,?,?,?,?)`, input.Name, input.Description, input.ImageUrl, input.IsPublished, input.ArtistId)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot insert ": err.Error()})
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "Album Created Successfully"})
@@ -74,11 +72,8 @@ func (repository *AlbumRepository) GetAlbum() (input []Album, err error) {
 
 	err = repository.Db.Select(&input, `SELECT name,description,image_url,is_published from Album`)
 	if err != nil {
-		fmt.Println("error on display")
-		return
-
+		panic(err)
 	}
-
 	return
 }
 
@@ -90,15 +85,14 @@ func (repository *AlbumRepository) Update(c *gin.Context) {
 
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
 		return
 	}
 
 	_, err = repository.Db.Exec(`UPDATE Album SET name=?,description=?,image_url=? ,is_published=? WHERE id=?`, input.Name, input.Description, input.ImageUrl, input.IsPublished, input.Id)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot Update ": err.Error()})
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "Album Updated Successfully"})
@@ -112,15 +106,14 @@ func (repository *AlbumRepository) Delete(c *gin.Context) {
 
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
 		return
 	}
 
 	_, err = repository.Db.Exec(`DELETE From Album   WHERE id=?`, input.Id)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot DELETE ": err.Error()})
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "Album  Removed Successfully"})
@@ -135,15 +128,14 @@ func (repository *AlbumRepository) Add(c *gin.Context) {
 
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
 		return
 	}
 
 	_, err = repository.Db.Exec(`INSERT INTO AlbumTrack(album_id,track_id) VALUES (?,?)`, input.AlbumId, input.TrackId)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot add data": err.Error()})
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "Track Added in album Successfully"})
@@ -155,18 +147,16 @@ func (repository *AlbumRepository) Remove(c *gin.Context) {
 
 	err := c.ShouldBindWith(&input, binding.JSON)
 
-	fmt.Println("cannot bind", err)
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
 		return
 	}
 
 	_, err = repository.Db.Exec(`DELETE From AlbumTrack WHERE album_id=? and track_id=? `, input.AlbumId, input.TrackId)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot DELETE ": err.Error()})
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "Track  Removed from album  Successfully"})

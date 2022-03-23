@@ -1,8 +1,6 @@
 package playlist
 
 import (
-	"database/sql"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -42,15 +40,14 @@ func (repository *PlaylistRepository) Create(c *gin.Context) {
 
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
 		return
 	}
 
 	_, err = repository.Db.Exec(`INSERT INTO Playlist(name,description,image_url,is_published) VALUES (?,?,?,?)`, input.Name, input.Description, input.ImageUrl, input.IsPublished)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot insert ": err.Error()})
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "playlist Created Successfully"})
@@ -74,9 +71,7 @@ func (repository *PlaylistRepository) Getplaylist() (input []playlist, err error
 
 	err = repository.Db.Select(&input, `SELECT name,description,image_url from Playlist`)
 	if err != nil {
-		fmt.Println("error on display")
-		return
-
+		panic(err)
 	}
 
 	return
@@ -90,15 +85,14 @@ func (repository *PlaylistRepository) Update(c *gin.Context) {
 
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Message ": err.Error()})
 		return
 	}
 
 	_, err = repository.Db.Exec(`UPDATE Playlist SET name=?,description=?,image_url=? ,is_published=? WHERE playlist_id=?`, input.Name, input.Description, input.ImageUrl, input.IsPublished, input.Id)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot Update ": err.Error()})
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "playlist Updated Successfully"})
@@ -112,15 +106,14 @@ func (repository *PlaylistRepository) Delete(c *gin.Context) {
 
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
 		return
 	}
 
 	_, err = repository.Db.Exec(`DELETE From Playlist  WHERE playlist_id=?`, input.Id)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot DELETE ": err.Error()})
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "playlist Removed Successfully"})
@@ -135,15 +128,14 @@ func (repository *PlaylistRepository) Add(c *gin.Context) {
 
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
 		return
 	}
 
 	_, err = repository.Db.Exec(`INSERT INTO PlaylistTrack(playlist_id,track_id) VALUES (?,?)`, input.PlaylistId, input.TrackId)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot add data": err.Error()})
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "Playlist Added in Track Successfully"})
@@ -154,8 +146,6 @@ func (repository *PlaylistRepository) Remove(c *gin.Context) {
 	input := PlaylistTrack{}
 
 	err := c.ShouldBindWith(&input, binding.JSON)
-
-	fmt.Println("cannot bind", err)
 	if err != nil {
 		c.Abort()
 		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
@@ -165,8 +155,7 @@ func (repository *PlaylistRepository) Remove(c *gin.Context) {
 	_, err = repository.Db.Exec(`DELETE From PlaylistTrack WHERE playlist_id=? and track_id=? `, input.PlaylistId, input.TrackId)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot DELETE ": err.Error()})
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "Playlist Removed from Track  Successfully"})
@@ -190,8 +179,7 @@ func (repository *PlaylistRepository) GetPlaylistTrack() (input []PlaylistTrack,
 
 	err = repository.Db.Select(&input, `SELECT id,playlist_id,track_id from PlaylistTrack`)
 	if err != nil {
-		fmt.Println("error on display")
-		return
+		panic(err)
 
 	}
 
@@ -209,13 +197,7 @@ func (repository *PlaylistRepository) PlaylistById(c *gin.Context) {
 	err := repository.Db.Get(&playlist, `SELECT id,playlist_id,track_id FROM PlaylistTrack WHERE playlist_id = ?`, id)
 
 	if err != nil {
-		fmt.Println("error query is empty")
-		if err == sql.ErrNoRows {
-			c.AbortWithStatus(http.StatusNotFound)
-			return
-		}
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, playlist)
