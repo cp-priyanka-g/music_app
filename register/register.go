@@ -61,15 +61,14 @@ func (repository *RegisterRepository) Register(c *gin.Context) {
 
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot bind the STRUCT ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
 	_, err = repository.Db.Exec(`INSERT INTO Users(name,email,user_type) VALUES (?,?,?)`, input.Name, input.Email, "General")
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot insert ": err.Error()})
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Register Successfully"})
@@ -89,15 +88,14 @@ func (repository *RegisterRepository) RegisterAdmin(c *gin.Context) {
 
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusBadRequest, gin.H{"Message cannot bind the STRUCT ": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Message ": err.Error()})
 		return
 	}
 
 	_, err = repository.Db.Exec(`INSERT INTO Users(name,email,user_type) VALUES (?,?,?)`, input.Name, input.Email, "Admin")
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message cannot insert ": err.Error()})
-		return
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Admin Registered Successfully"})
@@ -127,7 +125,7 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, "Please provide valid login details")
 		return
 	} else if err != nil {
-		c.JSON(http.StatusUnauthorized, "Please register to login")
+		panic(err)
 
 	}
 

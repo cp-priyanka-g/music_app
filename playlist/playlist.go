@@ -20,9 +20,13 @@ type playlist struct {
 }
 
 type PlaylistTrack struct {
-	Id         int `json:"id"`
-	PlaylistId int `json:"playlist_id"`
-	TrackId    int `json:"track_id"`
+	Id                  int    `json:"id"`
+	PlaylistId          int    `json:"playlist_id"`
+	TrackId             int    `json:"track_id"`
+	PlaylistName        string `json:"pname"`
+	PlaylistDescription string `json:"description"`
+	TrackName           string `json:"name"`
+	TrackImage          string `json:"image_url"`
 }
 
 type PlaylistRepository struct {
@@ -194,8 +198,8 @@ func (repository *PlaylistRepository) PlaylistById(c *gin.Context) {
 
 	id := c.Param("id")
 
-	err := repository.Db.Get(&playlist, `SELECT id,playlist_id,track_id FROM PlaylistTrack WHERE playlist_id = ?`, id)
-
+	err := repository.Db.Get(&playlist, `SELECT pt.id, p.name,p.description,t.name,t.image_url from PlaylistTrack as pt JOIN
+	Playlist as p ON pt.playlist_id=p.playlist_id JOIN Track as t on pt.track_id=t.track_id  WHERE p.playlist_id = ?`, id)
 	if err != nil {
 		panic(err)
 	}

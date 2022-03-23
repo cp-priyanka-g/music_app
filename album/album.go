@@ -21,9 +21,9 @@ type Album struct {
 }
 
 type AlbumTrack struct {
-	Id      int    `json:"id"`
-	AlbumId int    `json:"album_id"`
-	TrackId [3]int `json:"track_id"`
+	Id      int   `json:"id"`
+	AlbumId int   `json:"album_id"`
+	TrackId []int `json:"track_id"`
 }
 
 type AlbumRepository struct {
@@ -132,6 +132,10 @@ func (repository *AlbumRepository) Add(c *gin.Context) {
 		return
 	}
 
+	// for _, v := range AlbumTrack {
+	//     inserts = append(inserts, "(?, ?)")
+	//     params = append(params, v.name, v.price)
+	// }
 	_, err = repository.Db.Exec(`INSERT INTO AlbumTrack(album_id,track_id) VALUES (?,?)`, input.AlbumId, input.TrackId)
 
 	if err != nil {
