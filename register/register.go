@@ -1,7 +1,6 @@
 package register
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -30,7 +29,7 @@ type Claims struct {
 // Create the JWT key used to create the signature
 var jwtKey = []byte("my_secret_key")
 
-func GenerateToken(uemail string) {
+func GenerateToken(uemail string) string {
 	expirationTime := time.Now().Add(5 * time.Minute)
 	claims := &Claims{
 		Username: uemail,
@@ -42,11 +41,10 @@ func GenerateToken(uemail string) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(jwtKey)
 	if err != nil {
-		fmt.Println("ERROR IN GENERATING TOKEN")
-		return
+		panic(err)
 	}
 
-	fmt.Println("Token Created", tokenString)
+	return tokenString
 
 }
 
@@ -64,16 +62,14 @@ func (repository *RegisterRepository) Register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-
-	_, err = repository.Db.Exec(`INSERT INTO Users(name,email,user_type) VALUES (?,?,?)`, input.Name, input.Email, "General")
+	auth := GenerateToken(input.Email)
+	_, err = repository.Db.Exec(`INSERT INTO Users(name,email,user_type,auth_token) VALUES (?,?,?,?)`, input.Name, input.Email, "General", auth)
 
 	if err != nil {
 		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Register Successfully"})
-
-	GenerateToken(input.Email)
 
 }
 
@@ -84,6 +80,8 @@ func (repository *RegisterRepository) RegisterAdmin(c *gin.Context) {
 
 	input := UserRegister{}
 
+	auth := GenerateToken(input.Email)
+
 	err := c.ShouldBindWith(&input, binding.JSON)
 
 	if err != nil {
@@ -92,15 +90,13 @@ func (repository *RegisterRepository) RegisterAdmin(c *gin.Context) {
 		return
 	}
 
-	_, err = repository.Db.Exec(`INSERT INTO Users(name,email,user_type) VALUES (?,?,?)`, input.Name, input.Email, "Admin")
+	_, err = repository.Db.Exec(`INSERT INTO Users(name,email,user_type,auth_token) VALUES (?,?,?,?)`, input.Name, input.Email, "Admin", auth)
 
 	if err != nil {
 		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Admin Registered Successfully"})
-
-	GenerateToken(input.Email)
 
 }
 
