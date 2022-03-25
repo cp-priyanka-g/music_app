@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -145,12 +146,15 @@ func (repository *AlbumRepository) Add(c *gin.Context) {
 
 	fmt.Println("Params:", params)
 	s, _ := json.Marshal(params)
-	queryparam := string(s)
-	fmt.Println("Params after json marshal", queryparam)
+	stringparam := string(s)
+	fmt.Println("String :", stringparam)
+
+	queryparam, _ := strconv.Atoi(stringparam)
+	fmt.Println("Params after json marshal and strint to int conversion ", queryparam)
 
 	queryVals := strings.Join(inserts, ",")
-	query = query + queryVals + queryparam
-	fmt.Println("Query is:", query, queryparam)
+	query = query + queryVals
+	fmt.Println("Query is:", query)
 
 	data := repository.Db.MustExec(query)
 

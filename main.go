@@ -32,7 +32,7 @@ func main() {
 func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	router := gin.Default()
 
-	//router.Use(LogEndpointURL)
+	//router.Use(AdminAuthorize)
 
 	//authorized := router.Group("/", basicAuth)
 
