@@ -25,8 +25,16 @@ func main() {
 	_ = r.Run(":8080")
 }
 
+// func AdminAuthorize(c *gin.Context) {
+
+// }
+
 func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	router := gin.Default()
+
+	//router.Use(LogEndpointURL)
+
+	//authorized := router.Group("/", basicAuth)
 
 	registerRepo := register.New(sqlDb)
 	artistRepo := artist.New(sqlDb)

@@ -1,11 +1,10 @@
 package album
 
 import (
-	"context"
-	"log"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -25,9 +24,9 @@ type Album struct {
 }
 
 type AlbumTrack struct {
-	Id      int `json:"id"`
-	AlbumId int `json:"album_id"`
-	TrackId int `json:"track_id"`
+	Id      int   `json:"id"`
+	AlbumId int   `json:"album_id"`
+	TrackId []int `json:"track_id"`
 }
 
 type AlbumRepository struct {
@@ -126,7 +125,7 @@ func (repository *AlbumRepository) Delete(c *gin.Context) {
 // Add/remove Track from Album
 
 func (repository *AlbumRepository) Add(c *gin.Context) {
-	input := []AlbumTrack{}
+	input := AlbumTrack{}
 
 	err := c.ShouldBindWith(&input, binding.JSON)
 
@@ -137,40 +136,27 @@ func (repository *AlbumRepository) Add(c *gin.Context) {
 	}
 	query := `INSERT INTO AlbumTrack(album_id,track_id) VALUES`
 	var inserts []string
-	var params []interface{}
+	var params []int
 
-	for _, v := range input {
+	for _, v := range input.TrackId {
 		inserts = append(inserts, "(?, ?)")
-		params = append(params, v.AlbumId, v.TrackId)
+		params = append(params, input.AlbumId, v)
 	}
+
+	fmt.Println("Params:", params)
+	s, _ := json.Marshal(params)
+	queryparam := string(s)
+	fmt.Println("Params after json marshal", queryparam)
 
 	queryVals := strings.Join(inserts, ",")
-	query = query + queryVals
+	query = query + queryVals + queryparam
+	fmt.Println("Query is:", query, queryparam)
 
-	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancelfunc()
+	data := repository.Db.MustExec(query)
 
-	stmt, err := repository.Db.PrepareContext(ctx, query)
-	if err != nil {
-		log.Printf("Error %s when preparing SQL statement", err)
-		return
-	}
-	defer stmt.Close()
-	res, err := stmt.ExecContext(ctx, params)
-	if err != nil {
-		log.Printf("Error %s when inserting row into AlbumTrack table", err)
-		return
-	}
+	fmt.Println(data)
 
-	rows, err := res.RowsAffected()
-	if err != nil {
-		log.Printf("Error %s when finding rows affected", err)
-		return
-	}
-
-	log.Printf("%d AlbumTrack created simulatneously", rows)
 	return
-
 }
 
 func (repository *AlbumRepository) Remove(c *gin.Context) {

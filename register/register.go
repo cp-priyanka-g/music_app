@@ -113,11 +113,9 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 	}
 
 	_ = repository.Db.Get(&utype, `SELECT user_type FROM Users WHERE email= ?`, input.Email)
-	err := repository.Db.Get(&email, `SELECT email FROM Users WHERE email= ?`, input.Email)
+	err := repository.Db.Get(&email, `SELECT email FROM Users WHERE email= ? AND auth_token IS NOT NULL`, input.Email)
 
-	c.JSON(http.StatusOK, email)
-
-	if input.Email != email {
+	if email != input.Email {
 		c.JSON(http.StatusUnauthorized, "Please provide valid login details")
 		return
 	} else if err != nil {
@@ -125,49 +123,55 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 
 	}
 
-	// Creating TOken
-	expirationTime := time.Now().Add(5 * time.Minute)
-	claims := &Claims{
-		Username: input.Email,
-		UserType: utype,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtKey)
-	if err != nil {
-
-		c.JSON(http.StatusInternalServerError, gin.H{"error in creating the JWT": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, tokenString)
-
-	//	Verifying user authentication
-
-	tkn, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
-	})
-	if err != nil {
-		if err == jwt.ErrSignatureInvalid {
-			c.JSON(http.StatusUnauthorized, gin.H{"Signature Invalid": err.Error()})
-			return
-		}
-		c.JSON(http.StatusBadRequest, gin.H{"error in creating the JWT": err.Error()})
-		return
-	}
-	if !tkn.Valid {
-		c.JSON(http.StatusUnauthorized, gin.H{"Unauthorised user": err.Error()})
-		return
-	}
-
-	// Finally, return the welcome message to the user, along with their
-
-	if claims.UserType == "admin" {
+	if utype == "Admin" {
 		c.JSON(http.StatusOK, gin.H{"message": "Welcome Admin"})
 	} else {
 		c.JSON(http.StatusOK, gin.H{"message": "Welcome User"})
 	}
+
+	// Creating TOken
+	// expirationTime := time.Now().Add(5 * time.Minute)
+	// claims := &Claims{
+	// 	Username: input.Email,
+	// 	UserType: utype,
+	// 	StandardClaims: jwt.StandardClaims{
+	// 		ExpiresAt: expirationTime.Unix(),
+	// 	},
+	// }
+
+	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// tokenString, err := token.SignedString(jwtKey)
+	// if err != nil {
+
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error in creating the JWT": err.Error()})
+	// 	return
+	// }
+	// c.JSON(http.StatusOK, tokenString)
+
+	//	Verifying user authentication
+
+	// tkn, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+	// 	return jwtKey, nil
+	// })
+	// if err != nil {
+	// 	if err == jwt.ErrSignatureInvalid {
+	// 		c.JSON(http.StatusUnauthorized, gin.H{"Signature Invalid": err.Error()})
+	// 		return
+	// 	}
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error in creating the JWT": err.Error()})
+	// 	return
+	// }
+	// if !tkn.Valid {
+	// 	c.JSON(http.StatusUnauthorized, gin.H{"Unauthorised user": err.Error()})
+	// 	return
+	// }
+
+	// // Finally, return the welcome message to the user, along with their
+
+	// if claims.UserType == "admin" {
+	// 	c.JSON(http.StatusOK, gin.H{"message": "Welcome Admin"})
+	// } else {
+	// 	c.JSON(http.StatusOK, gin.H{"message": "Welcome User"})
+	// }
 
 }
