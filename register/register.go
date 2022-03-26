@@ -131,3 +131,32 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 	}
 
 }
+func (repository *RegisterRepository) AdminAuthorize(c *gin.Context) string {
+
+	input := UserRegister{}
+	var email, utype, token string
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
+
+	}
+
+	_ = repository.Db.Get(&utype, `SELECT user_type FROM Users WHERE email= ?`, input.Email)
+	err := repository.Db.Get(&email, `SELECT email FROM Users WHERE email= ? AND auth_token IS NOT NULL`, input.Email)
+	_ = repository.Db.Get(&token, `SELECT auth_token FROM Users WHERE email= ?`, input.Email)
+
+	if email != input.Email {
+		c.JSON(http.StatusUnauthorized, "Please provide valid login details")
+
+	} else if err != nil {
+		panic(err)
+
+	}
+
+	if utype == "Admin" {
+		c.JSON(http.StatusOK, gin.H{"message": "Welcome Admin"})
+	}
+
+	return token
+
+}
