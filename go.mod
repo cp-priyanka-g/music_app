@@ -28,6 +28,8 @@ require (
 	register v0.0.0-00010101000000-000000000000
 )
 
+require github.com/lib/pq v1.2.0 // indirect
+
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect

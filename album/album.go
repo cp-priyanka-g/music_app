@@ -1,11 +1,8 @@
 package album
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -135,31 +132,21 @@ func (repository *AlbumRepository) Add(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"Message": err.Error()})
 		return
 	}
-	query := `INSERT INTO AlbumTrack(album_id,track_id) VALUES`
-	var inserts []string
-	var params []int
 
+	var params []int
 	for _, v := range input.TrackId {
-		inserts = append(inserts, "(?, ?)")
-		params = append(params, input.AlbumId, v)
+		params = append(params, v)
 	}
 
-	fmt.Println("Params:", params)
-	s, _ := json.Marshal(params)
-	stringparam := string(s)
-	fmt.Println("String :", stringparam)
+	stmt, err := repository.Db.Prepare("insert into AlbumTrack(album_id,track_id) values (?,?)")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer stmt.Close()
 
-	queryparam, _ := strconv.Atoi(stringparam)
-	fmt.Println("Params after json marshal and strint to int conversion ", queryparam)
-
-	queryVals := strings.Join(inserts, ",")
-	query = query + queryVals
-	fmt.Println("Query is:", query)
-
-	data := repository.Db.MustExec(query)
-
-	fmt.Println(data)
-
+	if _, err := stmt.Exec(input.AlbumId, params); err != nil {
+		fmt.Println("smt.Exec failed: ", err)
+	}
 	return
 }
 
