@@ -2,7 +2,9 @@ package album
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -120,11 +122,10 @@ func (repository *AlbumRepository) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Message": "Album  Removed Successfully"})
 }
 
-// Add/remove Track from Album
+// Adding multiple coulmn /remove Track from Album
 
 func (repository *AlbumRepository) Add(c *gin.Context) {
 	input := AlbumTrack{}
-
 	err := c.ShouldBindWith(&input, binding.JSON)
 
 	if err != nil {
@@ -133,20 +134,46 @@ func (repository *AlbumRepository) Add(c *gin.Context) {
 		return
 	}
 
-	var params []int
+	query := `INSERT INTO AlbumTrack(album_id,track_id) VALUES`
+
+	var inserts []string
+	var params []interface{}
+
 	for _, v := range input.TrackId {
-		params = append(params, v)
+		inserts = append(inserts, "(?, ?)")
+		params = append(params, input.AlbumId, v)
+
 	}
 
-	stmt, err := repository.Db.Prepare("insert into AlbumTrack(album_id,track_id) values (?,?)")
+	queryVals := strings.Join(inserts, ",")
+	query = query + queryVals
+
+	stmt, err := repository.Db.Prepare(query)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("db.Prepare error: %v\n", err)
+		return
 	}
-	defer stmt.Close()
 
-	if _, err := stmt.Exec(input.AlbumId, params); err != nil {
-		fmt.Println("smt.Exec failed: ", err)
+	rs, err := stmt.Exec(params...)
+	if err != nil {
+		fmt.Println("Message :", err)
+		return
 	}
+
+	id, err := rs.LastInsertId()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println("id is :", id)
+
+	rows, err := rs.RowsAffected()
+	if err != nil {
+		log.Printf("Error %s when finding rows affected", err)
+		return
+	}
+	fmt.Println("Rows Affected:", rows)
+
+	defer stmt.Close()
 	return
 }
 

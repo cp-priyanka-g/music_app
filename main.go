@@ -25,46 +25,8 @@ func main() {
 	_ = r.Run(":8080")
 }
 
-// func AdminAuthorize(c *gin.Context) {
-// 	authMiddleware := &jwt.GinJWTMiddleware{
-// 		Realm:      "test zone",
-// 		Key:        []byte("secret key"),
-// 		Timeout:    time.Hour,
-// 		MaxRefresh: time.Hour,
-// 		Authenticator: func(userId string, password string, c *gin.Context) (string, bool) {
-// 			if (userId == "admin" && password == "admin") || (userId == "test" && password == "test") {
-// 				return userId, true
-// 			}
-
-// 			return userId, false
-// 		},
-// 		Authorizator: func(userId string, c *gin.Context) bool {
-// 			if userId == "admin" {
-// 				return true
-// 			}
-
-// 			return false
-// 		},
-// 		Unauthorized: func(c *gin.Context, code int, message string) {
-// 			c.JSON(code, gin.H{
-// 				"code":    code,
-// 				"message": message,
-// 			})
-// 		},
-
-// 		TokenLookup:   "header:Authorization",
-// 		TokenHeadName: "Bearer",
-// 		TimeFunc:      time.Now,
-// 	}
-
-// }
-
 func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	router := gin.Default()
-
-	//router.Use(AdminAuthorize)
-
-	//authorized := router.Group("/", basicAuth)
 
 	//auth := router.Group("/auth")
 
@@ -75,12 +37,16 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	playlistRepo := playlist.New(sqlDb)
 	favRepo := favourite.New(sqlDb)
 
+	// authorized:=registerRepo.AdminAuthorize
+	// Adminauthorized := router.Group("/",authorized)
+	// router.Use(authorized)
+
 	//USER Authencation
 	router.POST("/api/v1/register", registerRepo.Register)
 	router.POST("/api/v1/register/admin-register", registerRepo.RegisterAdmin)
 	router.POST("/api/v1/login", registerRepo.Login)
 
-	//ARTIST
+	//ARTISTAdminauthorized
 	router.POST("/api/v1/artist", artistRepo.Create)
 	router.PUT("/api/v1/artist/:id", artistRepo.Update)
 	router.DELETE("/api/v1/artist/remove", artistRepo.Delete)

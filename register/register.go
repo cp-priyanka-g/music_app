@@ -1,6 +1,7 @@
 package register
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -29,10 +30,11 @@ type Claims struct {
 // Create the JWT key used to create the signature
 var jwtKey = []byte("my_secret_key")
 
-func GenerateToken(uemail string) string {
+func GenerateToken(uemail string, utype string) string {
 	expirationTime := time.Now().Add(5 * time.Minute)
 	claims := &Claims{
 		Username: uemail,
+		UserType: utype,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -48,6 +50,34 @@ func GenerateToken(uemail string) string {
 
 }
 
+// Validation token
+func (repository *RegisterRepository) ValidateToken(encodedToken string) (*jwt.Token, error) {
+	return jwt.Parse(encodedToken, func(token *jwt.Token) (interface{}, error) {
+		if _, isvalid := token.Method.(*jwt.SigningMethodHMAC); !isvalid {
+			return nil, fmt.Errorf("Invalid token", token.Header["alg"])
+
+		}
+
+		return []byte(jwtKey), nil
+	})
+
+}
+
+// func AuthorizeJWT(c *gin.Context) {
+// 	const BEARER_SCHEMA = "Bearer"
+// 	authHeader := c.GetHeader("Authorization")
+// 	tokenString := authHeader[len(BEARER_SCHEMA):]
+// 	token, err := ValidateToken(tokenString)
+// 	if token.Valid {
+// 		claims := token.Claims.(jwt.MapClaims)
+// 		fmt.Println(claims)
+// 	} else {
+// 		fmt.Println(err)
+// 		c.AbortWithStatus(http.StatusUnauthorized)
+// 	}
+
+// }
+
 func New(db *sqlx.DB) *RegisterRepository {
 	return &RegisterRepository{Db: db}
 }
@@ -62,7 +92,7 @@ func (repository *RegisterRepository) Register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	auth := GenerateToken(input.Email)
+	auth := GenerateToken(input.Email, "General")
 	_, err = repository.Db.Exec(`INSERT INTO Users(name,email,user_type,auth_token) VALUES (?,?,?,?)`, input.Name, input.Email, "General", auth)
 
 	if err != nil {
@@ -73,14 +103,12 @@ func (repository *RegisterRepository) Register(c *gin.Context) {
 
 }
 
-//
-
 // ADMIN REGISTER
 func (repository *RegisterRepository) RegisterAdmin(c *gin.Context) {
 
 	input := UserRegister{}
 
-	auth := GenerateToken(input.Email)
+	auth := GenerateToken(input.Email, "Admin")
 
 	err := c.ShouldBindWith(&input, binding.JSON)
 
@@ -129,68 +157,5 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusOK, gin.H{"message": "Welcome User"})
 	}
-
-}
-
-//MiddleWARE Function of admin wrapper
-func (repository *RegisterRepository) AdminAuthorize(c *gin.Context) string {
-
-	input := UserRegister{}
-	var email, utype, token string
-
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
-
-	}
-
-	_ = repository.Db.Get(&utype, `SELECT user_type FROM Users WHERE email= ?`, input.Email)
-	err := repository.Db.Get(&email, `SELECT email FROM Users WHERE email= ? AND auth_token IS NOT NULL`, input.Email)
-	_ = repository.Db.Get(&token, `SELECT auth_token FROM Users WHERE email= ?`, input.Email)
-
-	if email != input.Email {
-		c.JSON(http.StatusUnauthorized, "Please provide valid login details")
-
-	} else if err != nil {
-		panic(err)
-
-	}
-
-	if utype == "Admin" {
-		c.JSON(http.StatusOK, gin.H{"message": "Welcome Admin"})
-	}
-
-	return token
-
-}
-
-//MiddleWARE Function of User wrapper
-
-func (repository *RegisterRepository) UserAuthorize(c *gin.Context) string {
-
-	input := UserRegister{}
-	var email, utype, token string
-
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
-
-	}
-
-	_ = repository.Db.Get(&utype, `SELECT user_type FROM Users WHERE email= ?`, input.Email)
-	err := repository.Db.Get(&email, `SELECT email FROM Users WHERE email= ? AND auth_token IS NOT NULL`, input.Email)
-	_ = repository.Db.Get(&token, `SELECT auth_token FROM Users WHERE email= ?`, input.Email)
-
-	if email != input.Email {
-		c.JSON(http.StatusUnauthorized, "Please provide valid login details")
-
-	} else if err != nil {
-		panic(err)
-
-	}
-
-	if utype == "General" {
-		c.JSON(http.StatusOK, gin.H{"message": "Welcome User"})
-	}
-
-	return token
 
 }
