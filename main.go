@@ -5,11 +5,14 @@ import (
 	"artist"
 	"db"
 	"favourite"
+	"fmt"
+	"net/http"
 	"playlist"
 	"register"
 
 	"track"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/jmoiron/sqlx"
 
 	"github.com/gin-gonic/gin"
@@ -25,10 +28,43 @@ func main() {
 	_ = r.Run(":8080")
 }
 
+func AuthorizeJWT() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		const BEARER_SCHEMA = "Bearer"
+		authHeader := c.GetHeader("Authorization")
+		tokenString := authHeader[len(BEARER_SCHEMA):]
+		token, err := register.JWTAuthService().ValidateToken(tokenString)
+		if token.Valid {
+			claims := token.Claims.(jwt.MapClaims)
+			fmt.Println(claims)
+		} else {
+			fmt.Println(err)
+			c.AbortWithStatus(http.StatusUnauthorized)
+		}
+
+	}
+}
 func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	router := gin.Default()
+	//router.Use(AuthorizeJWT)
+	auth := router.Group("/")
 
-	//auth := router.Group("/auth")
+	var loginService register.LoginService = register.StaticLoginService()
+	var jwtService register.JWTService = register.JWTAuthService()
+	var loginController register.LoginController = register.LoginHandler(loginService, jwtService)
+
+	// server := gin.New()
+
+	auth.POST("/login", func(ctx *gin.Context) {
+		token := loginController.Login(ctx)
+		if token != "" {
+			ctx.JSON(http.StatusOK, gin.H{
+				"token": token,
+			})
+		} else {
+			ctx.JSON(http.StatusUnauthorized, nil)
+		}
+	})
 
 	registerRepo := register.New(sqlDb)
 	artistRepo := artist.New(sqlDb)
@@ -44,7 +80,7 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	//USER Authencation
 	router.POST("/api/v1/register", registerRepo.Register)
 	router.POST("/api/v1/register/admin-register", registerRepo.RegisterAdmin)
-	router.POST("/api/v1/login", registerRepo.Login)
+	//router.POST("/api/v1/login", registerRepo.Login)
 
 	//ARTISTAdminauthorized
 	router.POST("/api/v1/artist", artistRepo.Create)

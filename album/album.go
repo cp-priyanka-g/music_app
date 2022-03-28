@@ -183,7 +183,7 @@ func (repository *AlbumRepository) Add(c *gin.Context) {
 
 func (repository *AlbumRepository) Remove(c *gin.Context) {
 
-	input := AlbumTrackRemove{}
+	input := AlbumTrack{}
 
 	err := c.ShouldBindWith(&input, binding.JSON)
 
@@ -193,11 +193,52 @@ func (repository *AlbumRepository) Remove(c *gin.Context) {
 		return
 	}
 
-	res1, err := repository.Db.Exec(`DELETE From AlbumTrack WHERE album_id=? and track_id=? `, input.AlbumId, input.TrackId)
-	fmt.Println("delere query is ", res1)
-	if err != nil {
-		panic(err)
+	// _, err = repository.Db.Exec(`DELETE From AlbumTrack WHERE album_id=? and track_id=? `, input.AlbumId, input.TrackId)
+
+	// if err != nil {
+	// 	panic(err)
+	// }
+	query := `DELETE FROM AlbumTrack WHERE track_id IN`
+
+	var inserts []string
+	var params []interface{}
+
+	for _, v := range input.TrackId {
+		inserts = append(inserts, "(?)")
+		params = append(params, v)
+
 	}
 
-	c.JSON(http.StatusOK, gin.H{"Message": "Track  Removed from album  Successfully"})
+	queryVals := strings.Join(inserts, ",")
+	query = query + queryVals
+
+	stmt, err := repository.Db.Prepare(query)
+	if err != nil {
+		fmt.Printf("db.Prepare error: %v\n", err)
+		return
+	}
+
+	rs, err := stmt.Exec(params...)
+	if err != nil {
+		fmt.Println("Message :", err)
+		return
+	}
+
+	id, err := rs.LastInsertId()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println("id is :", id)
+
+	rows, err := rs.RowsAffected()
+	if err != nil {
+		log.Printf("Error %s when finding rows affected", err)
+		return
+	}
+	fmt.Println("Rows Affected:", rows)
+
+	defer stmt.Close()
+	return
+
+	//c.JSON(http.StatusOK, gin.H{"Message": "Track  Removed from album  Successfully"})
 }

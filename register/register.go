@@ -3,6 +3,7 @@ package register
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -25,56 +26,89 @@ type Claims struct {
 	Username string `json:"username"`
 	UserType string `json:"user_type"`
 	jwt.StandardClaims
+} //jwt service
+type JWTService interface {
+	GenerateToken(email string, isUser bool) string
+	ValidateToken(token string) (*jwt.Token, error)
+}
+type authCustomClaims struct {
+	Name string `json:"name"`
+	User bool   `json:"user"`
+	jwt.StandardClaims
 }
 
-// Create the JWT key used to create the signature
-var jwtKey = []byte("my_secret_key")
+type jwtServices struct {
+	secretKey string
+	issure    string
+}
 
-func GenerateToken(uemail string, utype string) string {
-	expirationTime := time.Now().Add(5 * time.Minute)
-	claims := &Claims{
-		Username: uemail,
-		UserType: utype,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
+//auth-jwt
+func JWTAuthService() JWTService {
+	return &jwtServices{
+		secretKey: getSecretKey(),
+		issure:    "Bikash",
+	}
+}
+
+func getSecretKey() string {
+	secret := os.Getenv("SECRET")
+	if secret == "" {
+		secret = "secret"
+	}
+	return secret
+}
+
+func (register *jwtServices) GenerateToken(email string, isUser bool) string {
+	claims := &authCustomClaims{
+		email,
+		isUser,
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 48).Unix(),
+			Issuer:    register.issure,
+			IssuedAt:  time.Now().Unix(),
 		},
 	}
-
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtKey)
+
+	//encoded string
+	t, err := token.SignedString([]byte(register.secretKey))
 	if err != nil {
 		panic(err)
 	}
-
-	return tokenString
-
+	return t
 }
 
-// Validation token
-func (repository *RegisterRepository) ValidateToken(encodedToken string) (*jwt.Token, error) {
+func (register *jwtServices) ValidateToken(encodedToken string) (*jwt.Token, error) {
 	return jwt.Parse(encodedToken, func(token *jwt.Token) (interface{}, error) {
 		if _, isvalid := token.Method.(*jwt.SigningMethodHMAC); !isvalid {
 			return nil, fmt.Errorf("Invalid token", token.Header["alg"])
 
 		}
-
-		return []byte(jwtKey), nil
+		return []byte(register.secretKey), nil
 	})
 
 }
 
-// func AuthorizeJWT(c *gin.Context) {
-// 	const BEARER_SCHEMA = "Bearer"
-// 	authHeader := c.GetHeader("Authorization")
-// 	tokenString := authHeader[len(BEARER_SCHEMA):]
-// 	token, err := ValidateToken(tokenString)
-// 	if token.Valid {
-// 		claims := token.Claims.(jwt.MapClaims)
-// 		fmt.Println(claims)
-// 	} else {
-// 		fmt.Println(err)
-// 		c.AbortWithStatus(http.StatusUnauthorized)
+// Create the JWT key used to create the signature
+// var jwtKey = []byte("my_secret_key")
+
+// func GenerateToken(uemail string, utype string) string {
+// 	expirationTime := time.Now().Add(5 * time.Minute)
+// 	claims := &Claims{
+// 		Username: uemail,
+// 		UserType: utype,
+// 		StandardClaims: jwt.StandardClaims{
+// 			ExpiresAt: expirationTime.Unix(),
+// 		},
 // 	}
+
+// 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+// 	tokenString, err := token.SignedString(jwtKey)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// 	return tokenString
 
 // }
 
@@ -92,7 +126,7 @@ func (repository *RegisterRepository) Register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	auth := GenerateToken(input.Email, "General")
+	auth := JWTAuthService().GenerateToken(input.Email, true)
 	_, err = repository.Db.Exec(`INSERT INTO Users(name,email,user_type,auth_token) VALUES (?,?,?,?)`, input.Name, input.Email, "General", auth)
 
 	if err != nil {
@@ -108,7 +142,7 @@ func (repository *RegisterRepository) RegisterAdmin(c *gin.Context) {
 
 	input := UserRegister{}
 
-	auth := GenerateToken(input.Email, "Admin")
+	auth := JWTAuthService().GenerateToken(input.Email, true)
 
 	err := c.ShouldBindWith(&input, binding.JSON)
 
@@ -130,14 +164,14 @@ func (repository *RegisterRepository) RegisterAdmin(c *gin.Context) {
 
 // LOGIN
 
-func (repository *RegisterRepository) Login(c *gin.Context) {
+func (repository *RegisterRepository) LoginCredential(c *gin.Context) string {
 
 	input := UserRegister{}
 	var email, utype, token string
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
-		return
+
 	}
 
 	_ = repository.Db.Get(&utype, `SELECT user_type FROM Users WHERE email= ?`, input.Email)
@@ -146,16 +180,61 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 
 	if email != input.Email {
 		c.JSON(http.StatusUnauthorized, "Please provide valid login details")
-		return
+
 	} else if err != nil {
 		panic(err)
 
 	}
 
-	if utype == "Admin" {
-		c.JSON(http.StatusOK, gin.H{"message": "Welcome Admin"})
-	} else {
-		c.JSON(http.StatusOK, gin.H{"message": "Welcome User"})
-	}
+	return input.Email
 
+}
+
+// LOGIN AUTHENTICATION
+type LoginService interface {
+	LoginUser(email string) bool
+}
+type loginInformation struct {
+	email string
+}
+
+func StaticLoginService() LoginService {
+	return &loginInformation{
+		email: "priyanka@gmail.com",
+	}
+}
+func (info *loginInformation) LoginUser(email string) bool {
+	return info.email == email
+}
+
+//login contorller interface
+type LoginController interface {
+	Login(ctx *gin.Context) string
+}
+
+type loginController struct {
+	loginService LoginService
+	jWtService   JWTService
+}
+
+func LoginHandler(loginService LoginService,
+	jWtService JWTService) LoginController {
+	return &loginController{
+		loginService: loginService,
+		jWtService:   jWtService,
+	}
+}
+
+func (controller *loginController) Login(ctx *gin.Context) string {
+	var credential UserRegister
+	err := ctx.ShouldBind(&credential)
+	if err != nil {
+		return "no data found"
+	}
+	isUserAuthenticated := controller.loginService.LoginUser(credential.Email)
+	if isUserAuthenticated {
+		return controller.jWtService.GenerateToken(credential.Email, true)
+
+	}
+	return ""
 }
