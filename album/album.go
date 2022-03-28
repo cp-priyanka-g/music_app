@@ -28,7 +28,11 @@ type AlbumTrack struct {
 	AlbumId int   `json:"album_id"`
 	TrackId []int `json:"track_id"`
 }
-
+type AlbumTrackRemove struct {
+	Id      int `json:"id"`
+	AlbumId int `json:"album_id"`
+	TrackId int `json:"track_id"`
+}
 type AlbumRepository struct {
 	Db *sqlx.DB
 }
@@ -179,7 +183,7 @@ func (repository *AlbumRepository) Add(c *gin.Context) {
 
 func (repository *AlbumRepository) Remove(c *gin.Context) {
 
-	input := AlbumTrack{}
+	input := AlbumTrackRemove{}
 
 	err := c.ShouldBindWith(&input, binding.JSON)
 
@@ -189,8 +193,8 @@ func (repository *AlbumRepository) Remove(c *gin.Context) {
 		return
 	}
 
-	_, err = repository.Db.Exec(`DELETE From AlbumTrack WHERE album_id=? and track_id=? `, input.AlbumId, input.TrackId)
-
+	res1, err := repository.Db.Exec(`DELETE From AlbumTrack WHERE album_id=? and track_id=? `, input.AlbumId, input.TrackId)
+	fmt.Println("delere query is ", res1)
 	if err != nil {
 		panic(err)
 	}
