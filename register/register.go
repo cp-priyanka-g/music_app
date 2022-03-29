@@ -31,6 +31,7 @@ type JWTService interface {
 	GenerateToken(email string, isUser bool) string
 	ValidateToken(token string) (*jwt.Token, error)
 }
+
 type authCustomClaims struct {
 	Name string `json:"name"`
 	User bool   `json:"user"`
@@ -46,7 +47,7 @@ type jwtServices struct {
 func JWTAuthService() JWTService {
 	return &jwtServices{
 		secretKey: getSecretKey(),
-		issure:    "Bikash",
+		issure:    "Priya",
 	}
 }
 
@@ -164,7 +165,7 @@ func (repository *RegisterRepository) RegisterAdmin(c *gin.Context) {
 
 // LOGIN
 
-func (repository *RegisterRepository) LoginCredential(c *gin.Context) string {
+func (repository *RegisterRepository) LoginCredential(c *gin.Context) LoginService {
 
 	input := UserRegister{}
 	var email, utype, token string
@@ -186,7 +187,9 @@ func (repository *RegisterRepository) LoginCredential(c *gin.Context) string {
 
 	}
 
-	return input.Email
+	return &loginInformation{
+		email,
+	}
 
 }
 
@@ -225,15 +228,15 @@ func LoginHandler(loginService LoginService,
 	}
 }
 
-func (controller *loginController) Login(ctx *gin.Context) string {
+func (register *loginController) Login(ctx *gin.Context) string {
 	var credential UserRegister
 	err := ctx.ShouldBind(&credential)
 	if err != nil {
 		return "no data found"
 	}
-	isUserAuthenticated := controller.loginService.LoginUser(credential.Email)
+	isUserAuthenticated := register.loginService.LoginUser(credential.Email)
 	if isUserAuthenticated {
-		return controller.jWtService.GenerateToken(credential.Email, true)
+		return register.jWtService.GenerateToken(credential.Email, true)
 
 	}
 	return ""

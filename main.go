@@ -47,15 +47,12 @@ func AuthorizeJWT() gin.HandlerFunc {
 func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	router := gin.Default()
 	//router.Use(AuthorizeJWT)
-	auth := router.Group("/")
 
 	var loginService register.LoginService = register.StaticLoginService()
 	var jwtService register.JWTService = register.JWTAuthService()
 	var loginController register.LoginController = register.LoginHandler(loginService, jwtService)
 
-	// server := gin.New()
-
-	auth.POST("/login", func(ctx *gin.Context) {
+	router.POST("/api/login", func(ctx *gin.Context) {
 		token := loginController.Login(ctx)
 		if token != "" {
 			ctx.JSON(http.StatusOK, gin.H{
@@ -73,20 +70,20 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	playlistRepo := playlist.New(sqlDb)
 	favRepo := favourite.New(sqlDb)
 
-	// authorized:=registerRepo.AdminAuthorize
-	// Adminauthorized := router.Group("/",authorized)
-	// router.Use(authorized)
-
 	//USER Authencation
 	router.POST("/api/v1/register", registerRepo.Register)
 	router.POST("/api/v1/register/admin-register", registerRepo.RegisterAdmin)
 	//router.POST("/api/v1/login", registerRepo.Login)
 
 	//ARTISTAdminauthorized
-	router.POST("/api/v1/artist", artistRepo.Create)
-	router.PUT("/api/v1/artist/:id", artistRepo.Update)
-	router.DELETE("/api/v1/artist/remove", artistRepo.Delete)
-	router.GET("/api/v1/artist/show", artistRepo.Read)
+	apiRoutes := router.Group("/api", AuthorizeJWT())
+	{
+		apiRoutes.POST("/v1/artist", artistRepo.Create)
+		apiRoutes.PUT("/v1/artist/:id", artistRepo.Update)
+
+		apiRoutes.GET("/v1/artist/show", artistRepo.Read)
+		apiRoutes.DELETE("/v1/artist/remove", artistRepo.Delete)
+	}
 
 	//ALBUM
 	router.POST("/api/v1/album", albumRepo.Create)
