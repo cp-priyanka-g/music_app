@@ -90,29 +90,6 @@ func (register *jwtServices) ValidateToken(encodedToken string) (*jwt.Token, err
 
 }
 
-// Create the JWT key used to create the signature
-// var jwtKey = []byte("my_secret_key")
-
-// func GenerateToken(uemail string, utype string) string {
-// 	expirationTime := time.Now().Add(5 * time.Minute)
-// 	claims := &Claims{
-// 		Username: uemail,
-// 		UserType: utype,
-// 		StandardClaims: jwt.StandardClaims{
-// 			ExpiresAt: expirationTime.Unix(),
-// 		},
-// 	}
-
-// 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-// 	tokenString, err := token.SignedString(jwtKey)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-
-// 	return tokenString
-
-// }
-
 func New(db *sqlx.DB) *RegisterRepository {
 	return &RegisterRepository{Db: db}
 }
@@ -168,18 +145,16 @@ func (repository *RegisterRepository) RegisterAdmin(c *gin.Context) {
 func (repository *RegisterRepository) LoginCredential(c *gin.Context) LoginService {
 
 	input := UserRegister{}
-	var email, utype, token string
+	input1 := UserRegister{}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
 
 	}
 
-	_ = repository.Db.Get(&utype, `SELECT user_type FROM Users WHERE email= ?`, input.Email)
-	err := repository.Db.Get(&email, `SELECT email FROM Users WHERE email= ? AND auth_token IS NOT NULL`, input.Email)
-	_ = repository.Db.Get(&token, `SELECT auth_token FROM Users WHERE email= ?`, input.Email)
+	err := repository.Db.Select(&input1, `SELECT email,auth_token FROM Users WHERE email= ?`, input.Email)
 
-	if email != input.Email {
+	if input1.Email != input.Email {
 		c.JSON(http.StatusUnauthorized, "Please provide valid login details")
 
 	} else if err != nil {
@@ -188,7 +163,7 @@ func (repository *RegisterRepository) LoginCredential(c *gin.Context) LoginServi
 	}
 
 	return &loginInformation{
-		email,
+		input1.Email,
 	}
 
 }
@@ -237,7 +212,7 @@ func (register *loginController) Login(ctx *gin.Context) string {
 	isUserAuthenticated := register.loginService.LoginUser(credential.Email)
 	if isUserAuthenticated {
 		return register.jWtService.GenerateToken(credential.Email, true)
-
 	}
 	return ""
+
 }

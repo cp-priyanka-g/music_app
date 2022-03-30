@@ -2,7 +2,6 @@ package album
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
@@ -166,13 +165,13 @@ func (repository *AlbumRepository) Add(c *gin.Context) {
 
 	id, err := rs.LastInsertId()
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 	fmt.Println("id is :", id)
 
 	rows, err := rs.RowsAffected()
 	if err != nil {
-		log.Printf("Error %s when finding rows affected", err)
+		fmt.Printf("Error %s when finding rows affected", err)
 		return
 	}
 	fmt.Println("Rows Affected:", rows)
@@ -183,7 +182,7 @@ func (repository *AlbumRepository) Add(c *gin.Context) {
 
 func (repository *AlbumRepository) Remove(c *gin.Context) {
 
-	input := AlbumTrack{}
+	input := AlbumTrackRemove{}
 
 	err := c.ShouldBindWith(&input, binding.JSON)
 
@@ -193,52 +192,11 @@ func (repository *AlbumRepository) Remove(c *gin.Context) {
 		return
 	}
 
-	// _, err = repository.Db.Exec(`DELETE From AlbumTrack WHERE album_id=? and track_id=? `, input.AlbumId, input.TrackId)
+	_, err = repository.Db.Exec(`DELETE From AlbumTrack WHERE album_id=? and track_id=? `, input.AlbumId, input.TrackId)
 
-	// if err != nil {
-	// 	panic(err)
-	// }
-	query := `DELETE FROM AlbumTrack WHERE track_id IN`
-
-	var inserts []string
-	var params []interface{}
-
-	for _, v := range input.TrackId {
-		inserts = append(inserts, "(?)")
-		params = append(params, v)
-
-	}
-
-	queryVals := strings.Join(inserts, ",")
-	query = query + queryVals
-
-	stmt, err := repository.Db.Prepare(query)
 	if err != nil {
-		fmt.Printf("db.Prepare error: %v\n", err)
-		return
+		panic(err)
 	}
 
-	rs, err := stmt.Exec(params...)
-	if err != nil {
-		fmt.Println("Message :", err)
-		return
-	}
-
-	id, err := rs.LastInsertId()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	fmt.Println("id is :", id)
-
-	rows, err := rs.RowsAffected()
-	if err != nil {
-		log.Printf("Error %s when finding rows affected", err)
-		return
-	}
-	fmt.Println("Rows Affected:", rows)
-
-	defer stmt.Close()
-	return
-
-	//c.JSON(http.StatusOK, gin.H{"Message": "Track  Removed from album  Successfully"})
+	c.JSON(http.StatusOK, gin.H{"Message": "Track  Removed from album  Successfully"})
 }
