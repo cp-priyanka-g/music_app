@@ -30,9 +30,9 @@ func main() {
 
 func AuthorizeJWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		const BEARER_SCHEMA = "Bearer"
+
 		authHeader := c.GetHeader("Authorization")
-		tokenString := authHeader[len(BEARER_SCHEMA):]
+		tokenString := authHeader
 		token, err := register.JWTAuthService().ValidateToken(tokenString)
 		if token.Valid {
 			claims := token.Claims.(jwt.MapClaims)
@@ -46,13 +46,23 @@ func AuthorizeJWT() gin.HandlerFunc {
 }
 func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	router := gin.Default()
-	//router.Use(AuthorizeJWT)
 
 	var loginService register.LoginService = register.StaticLoginService()
 	var jwtService register.JWTService = register.JWTAuthService()
 	var loginController register.LoginController = register.LoginHandler(loginService, jwtService)
 
 	router.POST("/api/login", func(ctx *gin.Context) {
+		token := loginController.Login(ctx)
+		if token != "" {
+			ctx.JSON(http.StatusOK, gin.H{
+				"token": token,
+			})
+		} else {
+			ctx.JSON(http.StatusUnauthorized, nil)
+		}
+	})
+
+	router.POST("/api/user/login", func(ctx *gin.Context) {
 		token := loginController.Login(ctx)
 		if token != "" {
 			ctx.JSON(http.StatusOK, gin.H{
@@ -73,48 +83,45 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	//USER Authencation
 	router.POST("/api/v1/register", registerRepo.Register)
 	router.POST("/api/v1/register/admin-register", registerRepo.RegisterAdmin)
-	//router.POST("/api/v1/login", registerRepo.Login)
 
-	//ARTISTAdminauthorized
+	//Adminauthorized wrapper class
 	apiRoutes := router.Group("/api", AuthorizeJWT())
 	{
 		apiRoutes.POST("/v1/artist", artistRepo.Create)
 		apiRoutes.PUT("/v1/artist/:id", artistRepo.Update)
-
 		apiRoutes.GET("/v1/artist/show", artistRepo.Read)
 		apiRoutes.DELETE("/v1/artist/remove", artistRepo.Delete)
+
+		//ALBUM
+		apiRoutes.POST("/v1/album", albumRepo.Create)
+		apiRoutes.PUT("/v1/album/edit", albumRepo.Update)
+		apiRoutes.DELETE("/v1/album/remove", albumRepo.Delete)
+		apiRoutes.GET("/v1/album/show", albumRepo.Read)
+		apiRoutes.POST("/v1/album/add", albumRepo.Add)
+		//	apiRoutes.DELETE("/api/v1/album/remove-track", albumRepo.Remove)
+
+		//Track
+		apiRoutes.POST("/v1/track", trackRepo.Create)
+		apiRoutes.PUT("/v1/track/edit", trackRepo.Update)
+		apiRoutes.DELETE("/v1/track/remove", trackRepo.Delete)
+		apiRoutes.GET("/v1/track/show", trackRepo.Read)
+
+		//Playlist
+		apiRoutes.POST("/v1/playlist", playlistRepo.Create)
+		apiRoutes.PUT("/v1/playlist/edit", playlistRepo.Update)
+		apiRoutes.DELETE("/v1/playlist/remove", playlistRepo.Delete)
+		apiRoutes.GET("/v1/playlist/show", playlistRepo.Read)
+		apiRoutes.POST("/v1/playlist/add-track-playlist", playlistRepo.Add)
+		apiRoutes.DELETE("/v1/playlist/remove-track-playlist", playlistRepo.Remove)
+		apiRoutes.GET("/v1/playlist/get", playlistRepo.Get)
 	}
-
-	//ALBUM
-	router.POST("/api/v1/album", albumRepo.Create)
-	router.PUT("/api/v1/album/edit", albumRepo.Update)
-	router.DELETE("/api/v1/album/remove", albumRepo.Delete)
-	router.GET("/api/v1/album/show", albumRepo.Read)
-	router.POST("/api/v1/album/add", albumRepo.Add)
 	router.DELETE("/api/v1/album/remove-track", albumRepo.Remove)
-
-	//Track
-	router.POST("/api/v1/track", trackRepo.Create)
-	router.PUT("/api/v1/track/edit", trackRepo.Update)
-	router.DELETE("/api/v1/track/remove", trackRepo.Delete)
-	router.GET("/api/v1/track/show", trackRepo.Read)
-
-	//Playlist
-	router.POST("/api/v1/playlist", playlistRepo.Create)
-	router.PUT("/api/v1/playlist/edit", playlistRepo.Update)
-	router.DELETE("/api/v1/playlist/remove", playlistRepo.Delete)
-	router.GET("/api/v1/playlist/show", playlistRepo.Read)
-	router.POST("/api/v1/playlist/add-track-playlist", playlistRepo.Add)
-	router.DELETE("/api/v1/playlist/remove-track-playlist", playlistRepo.Remove)
-	router.GET("/api/v1/playlist/get", playlistRepo.Get)
-	router.GET("/api/v1/playlist/:id", playlistRepo.PlaylistById)
-
 	// Favourite Track
 
-	router.POST("/api/v1/favourite-track/create", favRepo.Create)
-	router.DELETE("/api/v1/unfavourite-track", favRepo.Delete)
-	router.GET("/api/v1/favourite-track", favRepo.Read)
-	router.GET("/api/v1/favourite-track/:id", favRepo.FavTrackId)
+	router.POST("/v1/favourite-track/create", favRepo.Create)
+	router.DELETE("/v1/unfavourite-track", favRepo.Delete)
+	router.GET("/v1/favourite-track", favRepo.Read)
+	router.GET("/v1/favourite-track/:id", favRepo.FavTrackId)
 
 	//Test ENDPOINTS
 	router.GET("/api/ping", func(c *gin.Context) {

@@ -22,11 +22,8 @@ type UserRegister struct {
 type RegisterRepository struct {
 	Db *sqlx.DB
 }
-type Claims struct {
-	Username string `json:"username"`
-	UserType string `json:"user_type"`
-	jwt.StandardClaims
-} //jwt service
+
+//jwt service
 type JWTService interface {
 	GenerateToken(email string, isUser bool) string
 	ValidateToken(token string) (*jwt.Token, error)
@@ -140,34 +137,6 @@ func (repository *RegisterRepository) RegisterAdmin(c *gin.Context) {
 
 }
 
-// LOGIN
-
-func (repository *RegisterRepository) LoginCredential(c *gin.Context) LoginService {
-
-	input := UserRegister{}
-	input1 := UserRegister{}
-
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
-
-	}
-
-	err := repository.Db.Select(&input1, `SELECT email,auth_token FROM Users WHERE email= ?`, input.Email)
-
-	if input1.Email != input.Email {
-		c.JSON(http.StatusUnauthorized, "Please provide valid login details")
-
-	} else if err != nil {
-		panic(err)
-
-	}
-
-	return &loginInformation{
-		input1.Email,
-	}
-
-}
-
 // LOGIN AUTHENTICATION
 type LoginService interface {
 	LoginUser(email string) bool
@@ -176,13 +145,14 @@ type loginInformation struct {
 	email string
 }
 
+func (info *loginInformation) LoginUser(email string) bool {
+	return info.email == email
+}
+
 func StaticLoginService() LoginService {
 	return &loginInformation{
 		email: "priyanka@gmail.com",
 	}
-}
-func (info *loginInformation) LoginUser(email string) bool {
-	return info.email == email
 }
 
 //login contorller interface

@@ -182,7 +182,7 @@ func (repository *AlbumRepository) Add(c *gin.Context) {
 
 func (repository *AlbumRepository) Remove(c *gin.Context) {
 
-	input := AlbumTrackRemove{}
+	input := AlbumTrack{}
 
 	err := c.ShouldBindWith(&input, binding.JSON)
 
@@ -199,4 +199,5 @@ func (repository *AlbumRepository) Remove(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "Track  Removed from album  Successfully"})
+
 }
