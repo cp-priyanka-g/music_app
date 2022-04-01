@@ -48,8 +48,10 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	router := gin.Default()
 
 	var loginService register.LoginService = register.StaticLoginService()
+	var uloginService register.LoginService = register.UserLoginService()
 	var jwtService register.JWTService = register.JWTAuthService()
 	var loginController register.LoginController = register.LoginHandler(loginService, jwtService)
+	var uloginController register.LoginController = register.LoginHandler(uloginService, jwtService)
 
 	router.POST("/api/login", func(ctx *gin.Context) {
 		token := loginController.Login(ctx)
@@ -63,7 +65,7 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	})
 
 	router.POST("/api/user/login", func(ctx *gin.Context) {
-		token := loginController.Login(ctx)
+		token := uloginController.Login(ctx)
 		if token != "" {
 			ctx.JSON(http.StatusOK, gin.H{
 				"token": token,
@@ -98,7 +100,7 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 		apiRoutes.DELETE("/v1/album/remove", albumRepo.Delete)
 		apiRoutes.GET("/v1/album/show", albumRepo.Read)
 		apiRoutes.POST("/v1/album/add", albumRepo.Add)
-		//	apiRoutes.DELETE("/api/v1/album/remove-track", albumRepo.Remove)
+		apiRoutes.DELETE("/api/v1/album/remove-track", albumRepo.Remove)
 
 		//Track
 		apiRoutes.POST("/v1/track", trackRepo.Create)
@@ -115,7 +117,7 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 		apiRoutes.DELETE("/v1/playlist/remove-track-playlist", playlistRepo.Remove)
 		apiRoutes.GET("/v1/playlist/get", playlistRepo.Get)
 	}
-	router.DELETE("/api/v1/album/remove-track", albumRepo.Remove)
+
 	// Favourite Track
 
 	router.POST("/v1/favourite-track/create", favRepo.Create)

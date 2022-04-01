@@ -27,11 +27,7 @@ type AlbumTrack struct {
 	AlbumId int   `json:"album_id"`
 	TrackId []int `json:"track_id"`
 }
-type AlbumTrackRemove struct {
-	Id      int `json:"id"`
-	AlbumId int `json:"album_id"`
-	TrackId int `json:"track_id"`
-}
+
 type AlbumRepository struct {
 	Db *sqlx.DB
 }
@@ -192,12 +188,47 @@ func (repository *AlbumRepository) Remove(c *gin.Context) {
 		return
 	}
 
-	_, err = repository.Db.Exec(`DELETE From AlbumTrack WHERE album_id=? and track_id=? `, input.AlbumId, input.TrackId)
+	query := `Delete from AlbumTrack WHERE album_id=? AND track_id IN `
 
+	var inserts []string
+	var params []interface{}
+
+	for _, v := range input.TrackId {
+		inserts = append(inserts, "?")
+		params = append(params, v)
+	}
+
+	queryVals := strings.Join(inserts, ",")
+	query = query + queryVals
+	fmt.Println("Query is:", query)
+
+	stmt, err := repository.Db.Prepare(query)
+	fmt.Println("Prepare statement is:", stmt)
+	if err != nil {
+		fmt.Printf("db.Prepare error: %v\n", err)
+		return
+	}
+
+	rs, err := stmt.Exec(params...)
+	if err != nil {
+		fmt.Println("Message :", err)
+		return
+	}
+
+	id, err := rs.LastInsertId()
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println("id is :", id)
 
-	c.JSON(http.StatusOK, gin.H{"Message": "Track  Removed from album  Successfully"})
+	rows, err := rs.RowsAffected()
+	if err != nil {
+		fmt.Printf("Error %s when finding rows affected", err)
+		return
+	}
+	fmt.Println("Rows Affected:", rows)
+
+	defer stmt.Close()
+	return
 
 }
