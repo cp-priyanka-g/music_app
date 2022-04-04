@@ -1,7 +1,6 @@
 package album
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -149,30 +148,19 @@ func (repository *AlbumRepository) Add(c *gin.Context) {
 
 	stmt, err := repository.Db.Prepare(query)
 	if err != nil {
-		fmt.Printf("db.Prepare error: %v\n", err)
 		return
 	}
 
 	rs, err := stmt.Exec(params...)
 	if err != nil {
-		fmt.Println("Message :", err)
 		return
 	}
-
-	id, err := rs.LastInsertId()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("id is :", id)
 
 	rows, err := rs.RowsAffected()
 	if err != nil {
-		fmt.Printf("Error %s when finding rows affected", err)
 		return
 	}
-	fmt.Println("Rows Affected:", rows)
-
-	defer stmt.Close()
+	defer rows.Close()
 	return
 }
 
@@ -200,35 +188,24 @@ func (repository *AlbumRepository) Remove(c *gin.Context) {
 
 	queryVals := strings.Join(inserts, ",")
 	query = query + queryVals
-	fmt.Println("Query is:", query)
 
 	stmt, err := repository.Db.Prepare(query)
-	fmt.Println("Prepare statement is:", stmt)
+
 	if err != nil {
-		fmt.Printf("db.Prepare error: %v\n", err)
 		return
 	}
 
 	rs, err := stmt.Exec(params...)
 	if err != nil {
-		fmt.Println("Message :", err)
 		return
 	}
-
-	id, err := rs.LastInsertId()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("id is :", id)
 
 	rows, err := rs.RowsAffected()
 	if err != nil {
-		fmt.Printf("Error %s when finding rows affected", err)
 		return
 	}
-	fmt.Println("Rows Affected:", rows)
 
-	defer stmt.Close()
+	defer rows.Close()
 	return
 
 }
