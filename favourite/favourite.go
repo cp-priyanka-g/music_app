@@ -15,6 +15,11 @@ type Favourite struct {
 	UserID        int `json:"user_id"`
 	FavTrackIndex int `json:"fav_track_index"`
 }
+type FavouriteTrack struct {
+	FavTrackId int    `json:"fav_track_id"`
+	UserName   string `json:"name"`
+	TrackUrl   string `json:"track_url"`
+}
 
 type FavRepository struct {
 	Db *sqlx.DB
@@ -58,9 +63,10 @@ func (repository *FavRepository) Read(c *gin.Context) {
 
 }
 
-func (repository *FavRepository) GetTrack() (input []Favourite, err error) {
+func (repository *FavRepository) GetTrack() (input []FavouriteTrack, err error) {
 
-	err = repository.Db.Select(&input, `SELECT track_id,user_id,fav_track_index from Favourite_tracks `)
+	err = repository.Db.Select(&input, `SELECT f.fav_track_id,u.name,t.track_url  from Favourite_tracks as f join Users as u on f.user_id=u.user_id 
+	join Track as t on f.track_id= t.track_id`)
 	if err != nil {
 
 		return
@@ -74,11 +80,12 @@ func (repository *FavRepository) GetTrack() (input []Favourite, err error) {
 
 func (repository *FavRepository) FavTrackId(c *gin.Context) {
 
-	track := Favourite{}
+	track := FavouriteTrack{}
 
 	id := c.Param("id")
 
-	err := repository.Db.Get(&track, `SELECT track_id,user_id,fav_track_index  from Favourite_tracks WHERE fav_track_id=?`, id)
+	err := repository.Db.Get(&track, `SELECT f.fav_track_id,u.name,t.track_url  from Favourite_tracks as f join Users as u on f.user_id=u.user_id 
+	join Track as t on f.track_id= t.track_id  WHERE f.fav_track_id=?`, id)
 
 	if err != nil {
 		panic(err)

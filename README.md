@@ -983,30 +983,26 @@ Music-App API Documentation
     - Headers : none
     - Body :none
     - Response :
-        [
+   [
     {
-        "fav_track_id": 0,
-        "track_id": 1,
-        "user_id": 1,
-        "fav_track_index": 1
+        "fav_track_id": 1,
+        "name": "Priyanka",
+        "track_url": "http://google.com/sanamPuri"
     },
     {
-        "fav_track_id": 0,
-        "track_id": 3,
-        "user_id": 1,
-        "fav_track_index": 1
+        "fav_track_id": 3,
+        "name": "Priyanka",
+        "track_url": "http://google.com/justine-bieber"
     },
     {
-        "fav_track_id": 0,
-        "track_id": 4,
-        "user_id": 1,
-        "fav_track_index": 2
+        "fav_track_id": 4,
+        "name": "Priyanka",
+        "track_url": "http://google.com/justine-bieber"
     },
     {
-        "fav_track_id": 0,
-        "track_id": 5,
-        "user_id": 2,
-        "fav_track_index": 2
+        "fav_track_id": 5,
+        "name": "Ridhaan",
+        "track_url": "http://sanampuri/samnewali/"
     }
 ]
      
@@ -1029,15 +1025,12 @@ Music-App API Documentation
 
     - If request will success ,
     - Status Code: 200 Ok
-    - Headers : none
+    - Headers : param (pass id of your favourite track)
     - Body :none
     - Response :
-     {
-    "fav_track_id": 0,
-    "track_id": 1,
-    "user_id": 1,
-    "fav_track_index": 1
+  {
+    "fav_track_id": 1,
+    "name": "Priyanka",
+    "track_url": "http://google.com/sanamPuri"
 }
-    
-
 
