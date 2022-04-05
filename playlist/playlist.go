@@ -125,7 +125,7 @@ func (repository *PlaylistRepository) Delete(c *gin.Context) {
 
 // Add/remove Track from Playlist
 
-func (repository *PlaylistRepository) Add(c *gin.Context) {
+func (repository *PlaylistRepository) AddPlaylist(c *gin.Context) {
 	input := PlaylistTrack{}
 
 	err := c.ShouldBindWith(&input, binding.JSON)

@@ -122,7 +122,7 @@ func (repository *AlbumRepository) Delete(c *gin.Context) {
 
 // Adding multiple coulmn /remove Track from Album
 
-func (repository *AlbumRepository) Add(c *gin.Context) {
+func (repository *AlbumRepository) AddAlbum(c *gin.Context) {
 	input := AlbumTrack{}
 	err := c.ShouldBindWith(&input, binding.JSON)
 
@@ -151,20 +151,14 @@ func (repository *AlbumRepository) Add(c *gin.Context) {
 		return
 	}
 
-	rs, err := stmt.Exec(params...)
+	_, err = stmt.Exec(params...)
 	if err != nil {
 		return
 	}
 
-	rows, err := rs.RowsAffected()
-	if err != nil {
-		return
-	}
-	defer rows.Close()
-	return
 }
 
-func (repository *AlbumRepository) Remove(c *gin.Context) {
+func (repository *AlbumRepository) RemoveAlbum(c *gin.Context) {
 
 	input := AlbumTrack{}
 
@@ -195,17 +189,9 @@ func (repository *AlbumRepository) Remove(c *gin.Context) {
 		return
 	}
 
-	rs, err := stmt.Exec(params...)
+	_, err = stmt.Exec(params...)
 	if err != nil {
 		return
 	}
-
-	rows, err := rs.RowsAffected()
-	if err != nil {
-		return
-	}
-
-	defer rows.Close()
-	return
 
 }

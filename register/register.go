@@ -156,9 +156,6 @@ func StaticLoginService() LoginService {
 }
 
 //login contorller interface
-type UserLoginController interface {
-	UserLogin(ctx *gin.Context)
-}
 
 type LoginController interface {
 	Login(ctx *gin.Context) string
