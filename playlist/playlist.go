@@ -180,8 +180,10 @@ func (repository *PlaylistRepository) Get(c *gin.Context) {
 }
 
 func (repository *PlaylistRepository) GetPlaylistTrack() (input []PlaylistTrack, err error) {
+	playlist := PlaylistTrack{}
 
-	err = repository.Db.Select(&input, `SELECT id,playlist_id,track_id from PlaylistTrack`)
+	err = repository.Db.Select(&playlist, `SELECT pt.id, p.name,p.description,t.name,t.image_url from PlaylistTrack as pt JOIN
+	Playlist as p ON pt.playlist_id=p.playlist_id JOIN Track as t on pt.track_id=t.track_id`)
 	if err != nil {
 		panic(err)
 
