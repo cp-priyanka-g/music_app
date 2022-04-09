@@ -193,5 +193,5 @@ func (repository *AlbumRepository) RemoveAlbum(c *gin.Context) {
 	if err != nil {
 		return
 	}
-
+	c.JSON(http.StatusOK, gin.H{"Message": "Album  Removed Successfully"})
 }

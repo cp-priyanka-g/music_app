@@ -168,6 +168,7 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 	}
 
 	err := repository.Db.Get(&email, `SELECT email FROM Users WHERE email= ?`, input.Email)
+	fmt.Println("Email:", email)
 	if err == nil {
 		panic(err)
 	}
@@ -182,6 +183,7 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 	}
 
 	validToken, err := GenerateJWT(input.Email, input.Role)
+	fmt.Println("PAir ofToken:", validToken["AccessToken"])
 
 	c.JSON(http.StatusOK, validToken)
 
@@ -195,61 +197,6 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 	token.Role = input.Role
 	token.TokenString = validToken["access_token"]
 	c.JSON(http.StatusOK, token)
-
-}
-
-// //Middleware
-func AuthorizeJWT() gin.HandlerFunc {
-	return func(c *gin.Context) {
-
-		authHeader := c.GetHeader("Token")
-		tokenString := authHeader
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("Invalid token", token.Header["Token"])
-
-			}
-			return "secretKey", nil
-		})
-
-		if err != nil {
-			c.JSON(403, gin.H{"message": "Your Token has been expired."})
-			return
-		}
-
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			if claims["role"] == "Admin" {
-				c.Request.Header.Set("Role", "Admin")
-				return
-
-			} else if claims["role"] == "General" {
-				c.Request.Header.Set("Role", "General")
-				return
-
-			}
-		}
-		c.JSON(http.StatusBadRequest, gin.H{"NotAuthorized ": err.Error()})
-
-	}
-}
-
-func AdminIndex(c *gin.Context) {
-	if c.Request.Header.Get("Role") != "admin" {
-		//c.JSON(http.StatusUnauthorized, gin.H{"Not Authorized"})
-		fmt.Println("Unauthorized")
-		return
-	}
-	fmt.Println("Welcome User")
-
-}
-
-func UserIndex(c *gin.Context) {
-	if c.Request.Header.Get("Role") != "user" {
-		//c.JSON(http.StatusBadRequest, gin.H{"NotAuthorized "})
-		fmt.Println("Unauthorized")
-		return
-	}
-	//	c.JSON(http.StatusOK, gin.H{"Welcome Admin"})
-	fmt.Println("Welcome admin")
+	fmt.Println("Token:", token)
 
 }

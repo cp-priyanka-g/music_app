@@ -24,7 +24,10 @@ Music-App API Documentation
 - Description : API for new user to register in app
 - Request:
     - Headers : none
-    - Body : none
+    - Body : {
+        "name":"priya",
+        "email":"priya@gmail.com"
+    }
 
 - Response :
 
@@ -35,12 +38,10 @@ Music-App API Documentation
     - If request will success ,
     - Status Code: 200 Ok
     - Headers : none
-    - Body :{
-        "name":"priya",
-        "email":"priya@gmail.com"
-    }
+    - Body :none
     - Response :
      "message": "Register Successfully"
+     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NDk1NjM4MTcsInN1YiI6MX0.AdZb1KcDDwO2tfg8Fwx4jhaYTHjLClvqsa4aRoNqDtE"
 
 2. Admin registeration Api
 - Method : Post
@@ -48,7 +49,10 @@ Music-App API Documentation
 - Description : API for Admin to register in app
 - Request:
     - Headers : none
-    - Body : none
+    - Body : {
+        "name":"priyanka",
+        "email":"priyanka@gmail.com"
+    }
 
 - Response :
 
@@ -59,12 +63,10 @@ Music-App API Documentation
     - If request will success ,
     - Status Code: 200 Ok
     - Headers : none
-    - Body :{
-        "name":"priyanka",
-        "email":"priyanka@gmail.com"
-    }
+    - Body :none
     - Response :
      "message": "Admin Register Successfully"
+     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NDk1NjM4MTcsInN1YiI6MX0.AdZb1KcDDwO2tfg8Fwx4jhaYTHjLClvqsa4aRoNqDtE"
 
 2.1 Admin login API
 - Method : Post
@@ -99,7 +101,10 @@ Music-App API Documentation
 - Description :API to create artist
 - Request:
     - Headers :Token of admin
-    - Body : none
+    - Body : {
+        "name":"Justin",
+        "image_url":"http://www.google/justin-bieber"
+    }
 
 - Response :
 
@@ -110,10 +115,7 @@ Music-App API Documentation
     - If request will success ,
     - Status Code: 200 Ok
     - Headers : none
-    - Body :{
-        "name":"Justin",
-        "image_url":"http://www.google/justin-bieber"
-    }
+    - Body :none
     - Response :
     Message": "Artist Added Successfully"
 
@@ -123,7 +125,11 @@ Music-App API Documentation
 - Description :API to Update Artist
 - Request:
     - Headers :Token of admin
-    - Body : none
+    - Body : {
+        "name":"Justin",
+        "image":"bieber.jpg",
+        "id":2
+    }
 
 - Response :
 
@@ -134,11 +140,7 @@ Music-App API Documentation
     - If request will success ,
     - Status Code: 200 Ok
     - Headers : none
-    - Body :{
-        "name":"Justin",
-        "image":"bieber.jpg",
-        "id":2
-    }
+    - Body :none
     - Response :
     Message": "Artist Updated Successfully"
 
@@ -275,7 +277,10 @@ Music-App API Documentation
 - Description :API to Delete Artist
 - Request:
     - Headers :Token of admin
-    - Body : none
+    - Body : {
+       
+        "id":2
+    }
 
 - Response :
 
@@ -286,10 +291,7 @@ Music-App API Documentation
     - If request will success ,
     - Status Code: 200 Ok
     - Headers : none
-    - Body :{
-       
-        "id":2
-    }
+    - Body :none
     - Response :
     Message": "Artist Deleted Successfully"
 
@@ -300,7 +302,13 @@ Music-App API Documentation
 - Description :API to create Album
 - Request:
     - Headers :Token of admin
-    - Body : none
+    - Body : {
+        "name":"Bollywood",
+        "description":"refreshing bollywoord music",
+        "image_url":"http://www.google/justin-bieber",
+        "is_published":1,
+        "artist_id":2
+    }
 
 - Response :
 
@@ -311,13 +319,7 @@ Music-App API Documentation
     - If request will success ,
     - Status Code: 200 Ok
     - Headers : none
-    - Body :{
-        "name":"Bollywood",
-        "description":"refreshing bollywoord music",
-        "image_url":"http://www.google/justin-bieber",
-        "is_published":1,
-        "artist_id":2
-    }
+    - Body :none
     - Response :
     Message": "Album Created Successfully"
 
@@ -328,7 +330,13 @@ Music-App API Documentation
 - Description :API to update Album
 - Request:
     - Headers :Token of admin
-    - Body : none
+    - Body : {
+        "name":"Falguni Pathak",
+        "description":"rendition of fresh new songs",
+        "is_published":1,
+        "image_url":"http://www.google/justin-bieber",
+         "id":2
+    }
 
 - Response :
 
@@ -339,13 +347,7 @@ Music-App API Documentation
     - If request will success ,
     - Status Code: 200 Ok
     - Headers : none
-    - Body :{
-        "name":"Falguni Pathak",
-        "description":"rendition of fresh new songs",
-        "is_published":1,
-        "image_url":"http://www.google/justin-bieber",
-         "id":2
-    }
+    - Body :none
     - Response :
     Message": "Album Updated Successfully"
 
@@ -356,7 +358,9 @@ Music-App API Documentation
 - Description :API to Delete Album
 - Request:
     - Headers :Token of admin
-    - Body : none
+    - Body :{
+                "id":2
+    }
 
 - Response :
 
@@ -367,9 +371,7 @@ Music-App API Documentation
     - If request will success ,
     - Status Code: 200 Ok
     - Headers : none
-    - Body :{
-                "id":2
-    }
+    - Body :none
     - Response :
     Message": "Album Deleted Successfully"
 
@@ -432,7 +434,7 @@ Music-App API Documentation
     - Status Code: 200 Ok
     - Headers : none
     - Body :none
-    - Response :
+    - Response :{"Message": "Album  Added Multiple Track  Successfully"}
 4.5
 - Method : DELETE
 - Endpoint :/api/v1/album/remove-track
@@ -454,7 +456,7 @@ Music-App API Documentation
     - Status Code: 200 Ok
     - Headers : none
     - Body :none
-    - Response :
+    - Response :{"Message": "Album  Removed Successfully"}
 	
 5. API of CRUD operation on Track
 - Method : POST
