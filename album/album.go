@@ -155,6 +155,8 @@ func (repository *AlbumRepository) AddAlbum(c *gin.Context) {
 	if err != nil {
 		return
 	}
+	c.JSON(http.StatusOK, gin.H{"Message": "Album  Added Multiple Track  Successfully"})
+}
 
 }
 

@@ -28,7 +28,7 @@ type Authentication struct {
 }
 
 type Token struct {
-	Role        string `json:"role"`
+	Role        string `json:"user_type"`
 	Email       string `json:"email"`
 	TokenString string `json:"token"`
 }
@@ -40,9 +40,9 @@ func generateRefreshToken() string {
 	rtClaims := refreshToken.Claims.(jwt.MapClaims)
 	rtClaims["sub"] = 1
 	rtClaims["exp"] = time.Now().Add(time.Hour * 24).Unix()
-
+	fmt.Println("refresh token ", rtClaims)
 	rt, err := refreshToken.SignedString([]byte("secret"))
-
+	fmt.Println("refresh token ", rt)
 	if err != nil {
 		panic(err)
 	}
@@ -171,7 +171,7 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 
 	err := repository.Db.Get(&email, `SELECT email FROM Users WHERE email= ?`, input.Email)
 	fmt.Println("Email:", email)
-	if err == nil {
+	if err != nil {
 		panic(err)
 	}
 	//compare the user from the request, with the one we defined:
@@ -179,7 +179,7 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, "Please provide valid login details")
 		return
 	}
-	err = repository.Db.Select(&token, `SELECT email,user_type FROM Users WHERE email= ?`, input.Email)
+	err = repository.Db.Get(&token, `SELECT email,user_type FROM Users WHERE email= ?`, input.Email)
 	if err != nil {
 		panic(err)
 	}
