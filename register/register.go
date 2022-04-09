@@ -51,7 +51,7 @@ func generateRefreshToken() string {
 }
 
 func GenerateJWT(email, role string) (map[string]string, error) {
-	// var mySigningKey = []byte(secretkey)
+
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 
@@ -156,10 +156,12 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 		RefreshToken string `json:"refresh_token"`
 		AccessToken  string `json:"access_token"`
 	}
+
 	tokenReq := tokenReqBody{}
 	c.Bind(&tokenReq)
 
-	input := Token{}
+	input := UserRegister{}
+	token := Token{}
 	var email string
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -177,12 +179,15 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, "Please provide valid login details")
 		return
 	}
-	err = repository.Db.Select(&input, `SELECT email,user_type FROM Users WHERE email= ?`, input.Email)
+	err = repository.Db.Select(&token, `SELECT email,user_type FROM Users WHERE email= ?`, input.Email)
 	if err != nil {
 		panic(err)
 	}
 
-	validToken, err := GenerateJWT(input.Email, input.Role)
+	fmt.Println("Detail of token", token.Email, token.Role)
+
+	validToken, err := GenerateJWT(token.Email, token.Role)
+
 	fmt.Println("PAir ofToken:", validToken["AccessToken"])
 
 	c.JSON(http.StatusOK, validToken)
@@ -192,10 +197,10 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 		return
 	}
 
-	var token Token
-	token.Email = input.Email
-	token.Role = input.Role
-	token.TokenString = validToken["access_token"]
+	var tokenDetail Token
+	tokenDetail.Email = token.Email
+	tokenDetail.Role = token.Role
+	tokenDetail.TokenString = validToken["access_token"]
 	c.JSON(http.StatusOK, token)
 	fmt.Println("Token:", token)
 

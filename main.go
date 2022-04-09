@@ -27,22 +27,6 @@ func main() {
 	_ = r.Run(":8080")
 }
 
-// func AuthorizeJWT() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-
-// 		authHeader := c.GetHeader("Authorization")
-// 		tokenString := authHeader
-// 		token, err := register.JWTAuthService().ValidateToken(tokenString)
-// 		if token.Valid {
-// 			claims := token.Claims.(jwt.MapClaims)
-// 			fmt.Println(claims)
-// 		} else {
-// 			fmt.Println(err)
-// 			c.AbortWithStatus(http.StatusUnauthorized)
-// 		}
-
-// 	}
-// }
 // //Middleware
 func AuthorizeJWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
