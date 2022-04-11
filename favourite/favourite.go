@@ -10,10 +10,9 @@ import (
 )
 
 type Favourite struct {
-	FavTrackId    int `json:"fav_track_id"`
-	TrackId       int `json:"track_id"`
-	UserID        int `json:"user_id"`
-	FavTrackIndex int `json:"fav_track_index"`
+	FavTrackId int `json:"fav_track_id"`
+	TrackId    int `json:"track_id"`
+	UserID     int `json:"user_id"`
 }
 type FavouriteTrack struct {
 	FavTrackId int    `json:"fav_track_id"`
@@ -40,7 +39,7 @@ func (repository *FavRepository) Create(c *gin.Context) {
 		return
 	}
 
-	_, err = repository.Db.Exec(`INSERT INTO Favourite_tracks (track_id,user_id,fav_track_index) VALUES (?,?,?)`, input.TrackId, input.UserID, input.FavTrackIndex)
+	_, err = repository.Db.Exec(`INSERT INTO Favourite_tracks (track_id,user_id) VALUES (?,?)`, input.TrackId, input.UserID)
 
 	if err != nil {
 		panic(err)

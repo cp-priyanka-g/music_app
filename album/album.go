@@ -158,8 +158,6 @@ func (repository *AlbumRepository) AddAlbum(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Message": "Album  Added Multiple Track  Successfully"})
 }
 
-}
-
 func (repository *AlbumRepository) RemoveAlbum(c *gin.Context) {
 
 	input := AlbumTrack{}

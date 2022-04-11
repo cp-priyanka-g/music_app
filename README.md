@@ -90,7 +90,12 @@ Music-App API Documentation
     - Headers : none
     - Body :
     {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoicHJpeWFua2FAZ21haWwuY29tIiwidXNlciI6dHJ1ZSwiZXhwIjoxNjQ5MjQyNjA3LCJpYXQiOjE2NDkwNjk4MDcsImlzcyI6IlByaXlhIn0.WjIZ043AM0UBL4yHfQHuJgx4ACJ2gGjTcdmMD7PrhdY"
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJlbWFpbCI6InByaXlhQGdtYWlsLmNvbSIsImV4cCI6MTY0OTQ4OTEyMywicm9sZSI6IkFkbWluIn0.OxjQKXhFVJXzTbJ8m2Ra4TkF_lXJS_lY3hCOPw_2X2k",
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NDk1NzM3MjMsInN1YiI6MX0.65gtfPIcdxM_lThjtn6A0A3mRy4MV3TzziOtqLZhsPA"
+}{
+    "user_type": "Admin",
+    "email": "priya@gmail.com",
+    "token": ""
 }
 
 
@@ -921,7 +926,7 @@ Music-App API Documentation
        
        "track_id":1,
        "user_id":2,
-       "fav_track_index":2
+      
      }
    
 - Response :

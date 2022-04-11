@@ -27,7 +27,7 @@ func main() {
 	_ = r.Run(":8080")
 }
 
-// //Middleware
+//Middleware
 func AuthorizeJWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
@@ -63,25 +63,36 @@ func AuthorizeJWT() gin.HandlerFunc {
 	}
 }
 
-func AdminIndex(c *gin.Context) {
-	if c.Request.Header.Get("Role") != "admin" {
-		//c.JSON(http.StatusUnauthorized, gin.H{"Not Authorized"})
-		fmt.Println("Unauthorized")
-		return
+//Middleware for user
+func UserAuthorizeJWT() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		authHeader := c.GetHeader("Token")
+		tokenString := authHeader
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("Invalid token", token.Header["Token"])
+
+			}
+			return "secretKey", nil
+		})
+
+		if err != nil {
+			c.JSON(403, gin.H{"message": "Your Token has been expired."})
+			return
+		}
+
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			if claims["role"] == "General" {
+				c.Request.Header.Set("Role", "General")
+				return
+
+			}
+		}
+		fmt.Println(err)
+		c.AbortWithStatus(http.StatusUnauthorized)
+
 	}
-	fmt.Println("Welcome User")
-
-}
-
-func UserIndex(c *gin.Context) {
-	if c.Request.Header.Get("Role") != "user" {
-		//c.JSON(http.StatusBadRequest, gin.H{"NotAuthorized "})
-		fmt.Println("Unauthorized")
-		return
-	}
-	//	c.JSON(http.StatusOK, gin.H{"Welcome Admin"})
-	fmt.Println("Welcome admin")
-
 }
 
 func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
@@ -126,7 +137,6 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 		authorized.DELETE("/v1/playlist/remove", playlistRepo.Delete)
 
 		authorized.POST("/v1/playlist/add-track-playlist", playlistRepo.AddPlaylist)
-		//authorized.POST("/v1/playlist/get-playlistby-track", playlistRepo.GetPlaylistTrack)
 		authorized.DELETE("/v1/playlist/remove-track-playlist", playlistRepo.Remove)
 
 	}

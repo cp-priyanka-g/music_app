@@ -170,7 +170,6 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 	}
 
 	err := repository.Db.Get(&email, `SELECT email FROM Users WHERE email= ?`, input.Email)
-	fmt.Println("Email:", email)
 	if err != nil {
 		panic(err)
 	}
@@ -184,16 +183,12 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 		panic(err)
 	}
 
-	fmt.Println("Detail of token", token.Email, token.Role)
-
 	validToken, err := GenerateJWT(token.Email, token.Role)
-
-	fmt.Println("PAir ofToken:", validToken["AccessToken"])
 
 	c.JSON(http.StatusOK, validToken)
 
 	if err != nil {
-		fmt.Println("Fail to generate token")
+		panic(err)
 		return
 	}
 
@@ -202,6 +197,4 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 	tokenDetail.Role = token.Role
 	tokenDetail.TokenString = validToken["access_token"]
 	c.JSON(http.StatusOK, token)
-	fmt.Println("Token:", token)
-
 }
