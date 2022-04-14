@@ -184,6 +184,7 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 	}
 
 	validToken, err := GenerateJWT(token.Email, token.Role)
+	fmt.Println("User_type:", token.Role)
 
 	c.JSON(http.StatusOK, validToken)
 

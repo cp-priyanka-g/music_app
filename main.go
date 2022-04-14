@@ -6,9 +6,11 @@ import (
 	"db"
 	"favourite"
 	"fmt"
+	"log"
 	"net/http"
 	"playlist"
 	"register"
+	"time"
 	"track"
 
 	"github.com/jmoiron/sqlx"
@@ -58,11 +60,20 @@ func AuthorizeJWT() gin.HandlerFunc {
 func AuthorizeAdmin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		role := c.MustGet("role")
-		if role == "user" {
+		if role == "General" {
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 	}
+}
+func WelcomeEndpoint(c *gin.Context) {
+	c.Next()
+	dt := time.Now()
+	log.Printf("Current date and time is: ", dt.String())
+	fmt.Println("Formated date and time", dt.Format("01-02-2006 15:04:05"))
+
+	log.Printf("Endpoint URL is %v", c.Request.URL)
+
 }
 
 func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
@@ -107,22 +118,39 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 
 	// }
 
+	router.Use(WelcomeEndpoint)
+
+	router.GET("v1/welcome", func(c *gin.Context) {
+		if c.FullPath() == "/v1/welcome" {
+			log.Printf("welcome to older version")
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Welcome to Middleware version v1",
+		})
+	})
+
+	router.GET("v2/hello-world ", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Hello World version 2",
+		})
+	})
 	//Adminauthorized wrapper class
 
 	authorized := router.Group("/api", AuthorizeJWT())
+	authorized.Use(AuthorizeAdmin())
 	{
 
-		authorized.POST("/v1/artist", AuthorizeAdmin(), artistRepo.Create)
-		authorized.PUT("/v1/artist/:id", AuthorizeAdmin(), artistRepo.Update)
-		authorized.GET("/v1/artist/show", AuthorizeAdmin(), artistRepo.Read)
-		authorized.DELETE("/v1/artist/remove", AuthorizeAdmin(), artistRepo.Delete)
+		authorized.POST("/v1/artist", artistRepo.Create)
+		authorized.PUT("/v1/artist/:id", artistRepo.Update)
+		authorized.GET("/v1/artist/show", artistRepo.Read)
+		authorized.DELETE("/v1/artist/remove", artistRepo.Delete)
 
 		//ALBUM
 		authorized.POST("/v1/album", albumRepo.Create)
 		authorized.PUT("/v1/album/edit", albumRepo.Update)
 		authorized.DELETE("/v1/album/remove", albumRepo.Delete)
 		authorized.POST("/v1/album/add", albumRepo.AddAlbum)
-		authorized.DELETE("/api/v1/album/remove-track", albumRepo.RemoveAlbum)
+		authorized.DELETE("/v1/album/remove-track", albumRepo.RemoveAlbum)
 
 		//Track
 		authorized.POST("/v1/track", trackRepo.Create)
