@@ -66,6 +66,13 @@ func AuthorizeAdmin() gin.HandlerFunc {
 		}
 	}
 }
+func AuthorizeUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		role := c.MustGet("role")
+		fmt.Println("User is :", role)
+	}
+}
+
 func WelcomeEndpoint(c *gin.Context) {
 	c.Next()
 	dt := time.Now()
@@ -169,15 +176,15 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	}
 	//Favourite Track (User functionality API)
 
-	router.GET("/v1/album/show", albumRepo.Read)
-	router.GET("/v1/track/show", trackRepo.Read)
-	router.GET("/v1/playlist/show", playlistRepo.Read)
-	router.GET("/v1/playlist/get-playlist-track/:id", playlistRepo.PlaylistById)
+	authorized.GET("/v1/album/show", AuthorizeUser(), albumRepo.Read)
+	authorized.GET("/v1/track/show", trackRepo.Read)
+	authorized.GET("/v1/playlist/show", playlistRepo.Read)
+	authorized.GET("/v1/playlist/get-playlist-track/:id", playlistRepo.PlaylistById)
 
-	router.POST("/v1/favourite-track/create", favRepo.Create)
-	router.DELETE("/v1/unfavourite-track", favRepo.Delete)
-	router.GET("/v1/favourite-track", favRepo.Read)
-	router.GET("/v1/favourite-track/:id", favRepo.FavTrackId)
+	authorized.POST("/v1/favourite-track/create", favRepo.Create)
+	authorized.DELETE("/v1/unfavourite-track", favRepo.Delete)
+	authorized.GET("/v1/favourite-track", favRepo.Read)
+	authorized.GET("/v1/favourite-track/:id", favRepo.FavTrackId)
 
 	//Test ENDPOINTS
 	router.GET("/api/ping", func(c *gin.Context) {
