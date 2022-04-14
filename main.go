@@ -55,11 +55,13 @@ func AuthorizeJWT() gin.HandlerFunc {
 	}
 }
 
-func AuthorizeAdmin(c *gin.Context) {
-	role := c.MustGet("role")
-	if role == "Admin" {
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return
+func AuthorizeAdmin() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		role := c.MustGet("role")
+		if role == "user" {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
 	}
 }
 
@@ -76,43 +78,44 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	//USER Authencation
 	router.POST("/api/v1/register", registerRepo.Register)
 	router.POST("/api/v1/register/admin-register", registerRepo.RegisterAdmin)
+	router.GET("/login", registerRepo.Login)
 
 	//basic auth for user authentication
 
-	adminAuth := gin.BasicAuth(gin.Accounts{
-		"email": "priyanka@gmail.com",
-	})
+	// adminAuth := gin.BasicAuth(gin.Accounts{
+	// 	"email": "priyanka@gmail.com",
+	// })
 
-	adminauthorized := router.Group("/", adminAuth)
-	{
+	// adminauthorized := router.Group("/", adminAuth)
+	// {
 
-		adminauthorized.POST("/album", albumRepo.Create)
-		adminauthorized.PUT("/album/edit", albumRepo.Update)
-		adminauthorized.DELETE("/album/remove", albumRepo.Delete)
+	// 	adminauthorized.POST("/album", albumRepo.Create)
+	// 	adminauthorized.PUT("/album/edit", albumRepo.Update)
+	// 	adminauthorized.DELETE("/album/remove", albumRepo.Delete)
 
-	}
+	// }
 
-	basicAuth := gin.BasicAuth(gin.Accounts{
-		"email": "priyanka@gmail.com",
-		"email": "anisha@gmail.com",
-	})
+	// basicAuth := gin.BasicAuth(gin.Accounts{
+	// 	"email": "priyanka@gmail.com",
+	// 	"email": "anisha@gmail.com",
+	// })
 
-	basicauthorized := router.Group("/", basicAuth)
-	{
-		basicauthorized.GET("/login", registerRepo.Login)
-		basicauthorized.GET("/album/show", albumRepo.Read)
+	// basicauthorized := router.Group("/", basicAuth)
+	// {
+	// 	basicauthorized.GET("/login", registerRepo.Login)
+	// 	basicauthorized.GET("/album/show", albumRepo.Read)
 
-	}
+	// }
 
 	//Adminauthorized wrapper class
 
-	authorized := router.Group("/api", AuthorizeAdmin)
-
+	authorized := router.Group("/api", AuthorizeJWT())
 	{
-		authorized.POST("/v1/artist", artistRepo.Create)
-		authorized.PUT("/v1/artist/:id", artistRepo.Update)
-		authorized.GET("/v1/artist/show", artistRepo.Read)
-		authorized.DELETE("/v1/artist/remove", artistRepo.Delete)
+
+		authorized.POST("/v1/artist", AuthorizeAdmin(), artistRepo.Create)
+		authorized.PUT("/v1/artist/:id", AuthorizeAdmin(), artistRepo.Update)
+		authorized.GET("/v1/artist/show", AuthorizeAdmin(), artistRepo.Read)
+		authorized.DELETE("/v1/artist/remove", AuthorizeAdmin(), artistRepo.Delete)
 
 		//ALBUM
 		authorized.POST("/v1/album", albumRepo.Create)

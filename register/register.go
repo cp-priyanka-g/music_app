@@ -191,6 +191,10 @@ func (repository *RegisterRepository) Login(c *gin.Context) {
 		panic(err)
 		return
 	}
-
+	var tokenDetail Token
+	tokenDetail.Email = token.Email
+	tokenDetail.Role = token.Role
+	tokenDetail.TokenString = validToken["access_token"]
 	c.JSON(http.StatusOK, token)
+	fmt.Println("Token:", token)
 }
