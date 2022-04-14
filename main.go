@@ -47,19 +47,19 @@ func AuthorizeJWT() gin.HandlerFunc {
 		}
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			if claims["role"] == "Admin" {
-				c.Request.Header.Set("Role", "Admin")
-				return
-			} else if claims["role"] == "General" {
-				c.Request.Header.Set("Role", "General")
-				return
-
-			}
-
+			c.Set("role", claims["role"])
+			return
 		}
-		fmt.Println(err)
-		c.AbortWithStatus(http.StatusUnauthorized)
 
+		c.AbortWithStatus(http.StatusUnauthorized)
+	}
+}
+
+func AuthorizeAdmin(c *gin.Context) {
+	role := c.MustGet("role")
+	if role == "Admin" {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
 	}
 }
 
@@ -76,11 +76,28 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	//USER Authencation
 	router.POST("/api/v1/register", registerRepo.Register)
 	router.POST("/api/v1/register/admin-register", registerRepo.RegisterAdmin)
-	router.GET("/api/v1/login", registerRepo.Login)
+
+	//basic auth for user authentication
+
+	basicAuth := gin.BasicAuth(gin.Accounts{
+		"email": "priyanka@gmail.com",
+		"email": "anisha@gmail.com",
+	})
+
+	basicauthorized := router.Group("/", basicAuth)
+	{
+		basicauthorized.GET("/login", registerRepo.Login)
+		basicauthorized.GET("/album/show", albumRepo.Read)
+		basicauthorized.POST("/album", albumRepo.Create)
+		basicauthorized.PUT("/album/edit", albumRepo.Update)
+		basicauthorized.DELETE("/album/remove", albumRepo.Delete)
+
+	}
 
 	//Adminauthorized wrapper class
 
-	authorized := router.Group("/api", AuthorizeJWT())
+	authorized := router.Group("/api", AuthorizeAdmin)
+
 	{
 		authorized.POST("/v1/artist", artistRepo.Create)
 		authorized.PUT("/v1/artist/:id", artistRepo.Update)
@@ -107,19 +124,18 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 		authorized.POST("/v1/playlist/add-track-playlist", playlistRepo.AddPlaylist)
 		authorized.DELETE("/v1/playlist/remove-track-playlist", playlistRepo.Remove)
 
-		//Favourite Track (User functionality API)
-
-		authorized.GET("/v1/album/show", albumRepo.Read)
-		authorized.GET("/v1/track/show", trackRepo.Read)
-		authorized.GET("/v1/playlist/show", playlistRepo.Read)
-		authorized.GET("/v1/playlist/get-playlist-track/:id", playlistRepo.PlaylistById)
-
-		authorized.POST("/v1/favourite-track/create", favRepo.Create)
-		authorized.DELETE("/v1/unfavourite-track", favRepo.Delete)
-		authorized.GET("/v1/favourite-track", favRepo.Read)
-		authorized.GET("/v1/favourite-track/:id", favRepo.FavTrackId)
-
 	}
+	//Favourite Track (User functionality API)
+
+	router.GET("/v1/album/show", albumRepo.Read)
+	router.GET("/v1/track/show", trackRepo.Read)
+	router.GET("/v1/playlist/show", playlistRepo.Read)
+	router.GET("/v1/playlist/get-playlist-track/:id", playlistRepo.PlaylistById)
+
+	router.POST("/v1/favourite-track/create", favRepo.Create)
+	router.DELETE("/v1/unfavourite-track", favRepo.Delete)
+	router.GET("/v1/favourite-track", favRepo.Read)
+	router.GET("/v1/favourite-track/:id", favRepo.FavTrackId)
 
 	//Test ENDPOINTS
 	router.GET("/api/ping", func(c *gin.Context) {
