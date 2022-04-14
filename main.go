@@ -93,31 +93,32 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 
 	//basic auth for user authentication
 
-	// adminAuth := gin.BasicAuth(gin.Accounts{
-	// 	"email": "priyanka@gmail.com",
-	// })
+	adminAuth := gin.BasicAuth(gin.Accounts{
+		"priyanka@gmail.com": "123",
+	})
 
-	// adminauthorized := router.Group("/", adminAuth)
-	// {
+	adminauthorized := router.Group("/", adminAuth)
+	{
 
-	// 	adminauthorized.POST("/album", albumRepo.Create)
-	// 	adminauthorized.PUT("/album/edit", albumRepo.Update)
-	// 	adminauthorized.DELETE("/album/remove", albumRepo.Delete)
+		adminauthorized.POST("/album", albumRepo.Create)
+		adminauthorized.PUT("/album/edit", albumRepo.Update)
+		adminauthorized.DELETE("/album/remove", albumRepo.Delete)
 
-	// }
+	}
 
-	// basicAuth := gin.BasicAuth(gin.Accounts{
-	// 	"email": "priyanka@gmail.com",
-	// 	"email": "anisha@gmail.com",
-	// })
+	basicAuth := gin.BasicAuth(gin.Accounts{
+		"priyanka@gmail.com": "123",
+		"anisha@gmail.com":   "1234",
+	})
 
-	// basicauthorized := router.Group("/", basicAuth)
-	// {
-	// 	basicauthorized.GET("/login", registerRepo.Login)
-	// 	basicauthorized.GET("/album/show", albumRepo.Read)
+	basicauthorized := router.Group("/", basicAuth)
+	{
 
-	// }
+		basicauthorized.GET("/album/show", albumRepo.Read)
 
+	}
+
+	// Basic auth middleware to display Current Date, time and url path and show version detail
 	router.Use(WelcomeEndpoint)
 
 	router.GET("v1/welcome", func(c *gin.Context) {

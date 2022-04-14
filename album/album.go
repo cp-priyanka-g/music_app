@@ -15,9 +15,9 @@ type Album struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	ImageUrl    string `json:"image_url"`
-	IsPublished int    `json:"is_published "`
-	CreatedAt   string `json:"created_at "`
-	UpdatedAt   string `json:"updated_at "`
+	IsPublished int    `json:"is_published"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
 	ArtistId    int    `json:"artist_id"`
 }
 
@@ -71,7 +71,7 @@ func (repository *AlbumRepository) Read(c *gin.Context) {
 
 func (repository *AlbumRepository) GetAlbum() (input []Album, err error) {
 
-	err = repository.Db.Select(&input, `SELECT name,description,image_url,is_published from Album`)
+	err = repository.Db.Select(&input, `SELECT name,description,image_url,is_published,created_at,updated_at from Album`)
 	if err != nil {
 		panic(err)
 	}
@@ -90,7 +90,7 @@ func (repository *AlbumRepository) Update(c *gin.Context) {
 		return
 	}
 
-	_, err = repository.Db.Exec(`UPDATE Album SET name=?,description=?,image_url=? ,is_published=? WHERE id=?`, input.Name, input.Description, input.ImageUrl, input.IsPublished, input.Id)
+	_, err = repository.Db.Exec(`UPDATE Album SET name=?,description=?,image_url=? ,is_published=? WHERE album_id=?`, input.Name, input.Description, input.ImageUrl, input.IsPublished, input.Id)
 
 	if err != nil {
 		panic(err)
@@ -111,7 +111,7 @@ func (repository *AlbumRepository) Delete(c *gin.Context) {
 		return
 	}
 
-	_, err = repository.Db.Exec(`DELETE From Album   WHERE id=?`, input.Id)
+	_, err = repository.Db.Exec(`DELETE From Album   WHERE album_id=?`, input.Id)
 
 	if err != nil {
 		panic(err)

@@ -399,23 +399,38 @@ Music-App API Documentation
     - Headers : none
     - Body :none
     - Response :
-    [{
+  [
+    {
+        "album_id": 0,
         "name": "Sanam",
-        "description":"Recreated old songs",
-        "image_url":"https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Justin_Bieber_in_2015.jpg/800px-Justin_Bieber_in_2015.jpg,
+        "description": "Recreated old songs ",
+        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Justin_Bieber_in_2015.jpg/800px-Justin_Bieber_in_2015.jpg",
         "is_published": 0,
         "created_at": "2022-03-21 09:42:41",
-        "updated_at:"2022-03-21 09:42:41" 
+        "updated_at": "2022-03-21 09:42:41",
+        "artist_id": 0
     },
-     {
+    {
+        "album_id": 0,
         "name": "Justin bieber",
-        "description":"Recreated old songs,retro creation ",
-        "image_url":"https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Justin_Bieber_in_2015.jpg/800px-sanampuri.jpg ",
+        "description": "Recreated old songs,retro creation",
+        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Justin_Bieber_in_2015.jpg/800px-sanampuri.jpg",
         "is_published": 1,
         "created_at": "2022-03-22 03:43:25",
-        "updated_at:"2022-03-22 03:43:25" 
+        "updated_at": "2022-03-22 03:43:25",
+        "artist_id": 0
+    },
+    {
+        "album_id": 0,
+        "name": "Shreya Ghosal",
+        "description": "melidious song og bollywood",
+        "image_url": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcR8JE6WblIyHLrTnUFBRhYcy4LfIkVHhvq1CNRErv0ZXozW1n6v",
+        "is_published": 0,
+        "created_at": "2022-04-14 06:23:28",
+        "updated_at": "2022-04-14 06:23:28",
+        "artist_id": 0
     }
-    ]
+]
    
 		
 4.4
