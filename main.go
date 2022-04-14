@@ -79,6 +79,19 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 
 	//basic auth for user authentication
 
+	adminAuth := gin.BasicAuth(gin.Accounts{
+		"email": "priyanka@gmail.com",
+	})
+
+	adminauthorized := router.Group("/", adminAuth)
+	{
+
+		adminauthorized.POST("/album", albumRepo.Create)
+		adminauthorized.PUT("/album/edit", albumRepo.Update)
+		adminauthorized.DELETE("/album/remove", albumRepo.Delete)
+
+	}
+
 	basicAuth := gin.BasicAuth(gin.Accounts{
 		"email": "priyanka@gmail.com",
 		"email": "anisha@gmail.com",
@@ -88,9 +101,6 @@ func setupRouter(sqlDb *sqlx.DB) *gin.Engine {
 	{
 		basicauthorized.GET("/login", registerRepo.Login)
 		basicauthorized.GET("/album/show", albumRepo.Read)
-		basicauthorized.POST("/album", albumRepo.Create)
-		basicauthorized.PUT("/album/edit", albumRepo.Update)
-		basicauthorized.DELETE("/album/remove", albumRepo.Delete)
 
 	}
 
