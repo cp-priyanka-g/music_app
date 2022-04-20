@@ -1,17 +1,17 @@
 package main
 
 import (
-	"db"
+	// "db"
 	"fmt"
 	"log"
 	"net/http"
-	"register"
+
+	// "register"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 
 	"github.com/gin-gonic/gin"
-
 	_ "github.com/go-sql-driver/mysql"
 )
 
